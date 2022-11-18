@@ -201,5 +201,62 @@ ZENDEFNODE(ShaderFinalize, {
     {"shader"},
 });
 
+struct StandardSurface : INode {
+    virtual void apply() override {
+    }
+};
+
+ZENDEFNODE(StandardSurface, {
+    {
+        {"string", "mtlId", "Mat1"},
+        {"float", "base", "1"},
+        {"vec3f", "baseColor", "1,1,1"},
+        {"float", "diffuseRoughness", "0.4"},
+        {"float", "metalness", "0"},
+        {"float", "specular", "1"},
+        {"vec3f", "specularColor", "1,1,1"},
+        {"float", "specularRoughness", "0.4"},
+        {"float", "specularIOR", "1.5"},
+        {"float", "specularAnisotropy", "0"},
+        {"float", "specularRotation", "0"},
+        {"float", "transmission", "0"},
+        {"vec3f", "transmissionColor", "1,1,1"},
+        {"float", "transmissionDepth", "0"},
+        {"vec3f", "transmissionScatter", "0,0,0"},
+        {"float", "transmissionScatterAnisotropy", "0"},
+        {"float", "transmissionDispersion", "0"},
+        {"float", "transmissionExtraRoughness", "0"},
+        {"float", "subsurface", "0"},
+        {"vec3f", "subsurfaceColor", "1,1,1"},
+        {"vec3f", "subsurfaceRadius", "1,1,1"},
+        {"float", "subsurfaceScale", "1"},
+        {"float", "subsurfaceAnisotropy", "0"},
+        {"float", "sheen", "0"},
+        {"vec3f", "sheenColor", "1,1,1"},
+        {"float", "sheenRoughness", "0.4"},
+        {"float", "coat", "0"},
+        {"vec3f", "coatColor", "1,1,1"},
+        {"float", "coatAnisotropy", "0"},
+        {"float", "coatRotation", "0"},
+        {"float", "coatIOR", "1.5"},
+        {"vec3f", "coatNormal", "0.5,0.5,1"},
+        {"float", "coatAffectColor", "0"},
+        {"float", "coatAffectRoughness", "0"},
+        {"float", "thinFilmThickness", "0"},
+        {"float", "thinFilmIOR", "0"},
+        {"float", "emission", "0"},
+        {"vec3f", "emissionColor", "1,1,1"},
+        {"vec3f", "opacity", "1,1,1"},
+        {"bool", "thinWalled", "0"},
+        {"vec3f", "normal", "0.5,0.5,1"},
+    },
+    {
+        {"MaterialObject", "mtl"},
+    },
+    {
+    },
+    {"shader"},
+});
+
 
 }
