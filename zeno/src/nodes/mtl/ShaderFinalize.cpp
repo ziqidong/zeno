@@ -23,6 +23,7 @@ struct ShaderFinalize : INode {
             em.commonCode += get_input<StringObject>("commonCode")->get();
 
         auto code = em.finalizeCode({
+            {1, "mat_base"},
             {3, "mat_basecolor"},
             {1, "mat_metallic"},
             {1, "mat_roughness"},
@@ -66,6 +67,7 @@ struct ShaderFinalize : INode {
             {1,"mat_isCamera"},
             {1,"mat_isVoxelDomain"}
         }, {
+            get_input<IObject>("base", std::make_shared<NumericObject>(1.0f)),
             get_input<IObject>("basecolor", std::make_shared<NumericObject>(vec3f(1.0f))),
             get_input<IObject>("metallic", std::make_shared<NumericObject>(float(0.0f))),
             get_input<IObject>("roughness", std::make_shared<NumericObject>(float(0.4f))),
@@ -142,6 +144,7 @@ struct ShaderFinalize : INode {
 
 ZENDEFNODE(ShaderFinalize, {
     {
+        {"float", "base", "1"},
         {"vec3f", "basecolor", "1,1,1"},
         {"float", "metallic", "0.0"},
         {"float", "roughness", "0.4"},
