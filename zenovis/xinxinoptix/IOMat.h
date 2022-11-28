@@ -12,6 +12,7 @@ struct MatOutput {
     float anisotropic;
     float sheen;
     float sheenTint;
+    vec3 sheenTintColor;
     float clearcoat;
     float clearcoatGloss;
     float opacity;

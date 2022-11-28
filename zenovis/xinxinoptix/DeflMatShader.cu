@@ -66,6 +66,7 @@ MatInput const &attrs) {
     float mat_anisotropic = 0.0;
     float mat_sheen = 0.0;
     float mat_sheenTint = 0.0;
+    vec3  mat_sheenTintColor = vec3(1.0, 1.0, 1.0);
     float mat_clearcoat = 0.0;
     float mat_clearcoatGloss = 0.0;
     float mat_opacity = 0.0;
@@ -100,6 +101,7 @@ MatInput const &attrs) {
         mats.anisotropic = clamp(mat_anisotropic, 0.0f, 1.0f);
         mats.sheen = mat_sheen;
         mats.sheenTint = mat_sheenTint;
+        mats.sheenTintColor = mat_sheenTintColor;
         mats.clearcoat = clamp(mat_clearcoat, 0.0f, 1.0f);
         mats.clearcoatGloss = mat_clearcoatGloss;
         mats.opacity = mat_opacity;
@@ -399,6 +401,7 @@ extern "C" __global__ void __anyhit__shadow_cutout()
     auto anisotropic = mats.anisotropic;
     auto sheen = mats.sheen;
     auto sheenTint = mats.sheenTint;
+    auto sheenTintColor = mats.sheenTintColor;
     auto clearcoat = mats.clearcoat;
     auto clearcoatGloss = mats.clearcoatGloss;
     auto opacity = mats.opacity;
@@ -650,6 +653,7 @@ extern "C" __global__ void __closesthit__radiance()
     auto anisotropic = mats.anisotropic;
     auto sheen = mats.sheen;
     auto sheenTint = mats.sheenTint;
+    auto sheenTintColor = mats.sheenTintColor;
     auto clearcoat = mats.clearcoat;
     auto clearcoatGloss = mats.clearcoatGloss;
     auto opacity = mats.opacity;
@@ -743,6 +747,7 @@ extern "C" __global__ void __closesthit__radiance()
                 anisotropic,
                 sheen,
                 sheenTint,
+                sheenTintColor,
                 clearcoat,
                 clearcoatGloss,
                 flatness,
@@ -936,7 +941,7 @@ extern "C" __global__ void __closesthit__radiance()
                 prd->Lweight = weight;
 
                 float3 lbrdf = DisneyBSDF::EvaluateDisney(
-                    basecolor, metallic, subsurface, specular, roughness, specularTint, anisotropic, sheen, sheenTint,
+                    basecolor, metallic, subsurface, specular, roughness, specularTint, anisotropic, sheen, sheenTint, sheenTintColor,
                     clearcoat, clearcoatGloss, specTrans, scatterDistance, ior, flatness, L, -normalize(inDir), T, B, N,
                     thin > 0.5f, flag == DisneyBSDF::transmissionEvent ? inToOut : prd->is_inside, ffPdf, rrPdf,
                     dot(N, L));
@@ -966,7 +971,7 @@ extern "C" __global__ void __closesthit__radiance()
 //                       1e16f, // tmax,
 //                       &shadow_prd2);
         lbrdf = DisneyBSDF::EvaluateDisney(
-            basecolor, metallic, subsurface, specular, roughness, specularTint, anisotropic, sheen, sheenTint,
+            basecolor, metallic, subsurface, specular, roughness, specularTint, anisotropic, sheen, sheenTint, sheenTintColor,
             clearcoat, clearcoatGloss, specTrans, scatterDistance, ior, flatness, sun_dir, -normalize(inDir), T, B, N,
             thin > 0.5f, flag == DisneyBSDF::transmissionEvent ? inToOut : prd->is_inside, ffPdf, rrPdf,
             dot(N, float3(sun_dir)));

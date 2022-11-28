@@ -90,14 +90,14 @@ namespace DisneyBSDF{
 
 
     static __inline__ __device__ 
-    vec3 EvaluateSheen(vec3 baseColor, float sheen, float sheenTint, float HoL)
+    vec3 EvaluateSheen(vec3 baseColor, float sheen, float sheenTint, vec3 sheenTintColor,float HoL)
     {
         if(sheen<=0.0f)
         {
             return vec3(0.0f);
         }
         vec3 tint = BRDFBasics::CalculateTint(baseColor);
-        return sheen * mix(vec3(1.0f), tint, sheenTint) * BRDFBasics::fresnel(HoL);
+        return sheen * mix(vec3(1.0f), tint, sheenTint) * sheenTintColor * BRDFBasics::fresnel(HoL);
     }
 
     static __inline__ __device__
@@ -156,6 +156,7 @@ namespace DisneyBSDF{
             float anisotropic,
             float sheen,
             float sheenTint,
+            vec3 sheenTintColor,
             float clearcoat,
             float clearcoatGloss,
             float ior, 
@@ -311,6 +312,7 @@ namespace DisneyBSDF{
         float anisotropic,
         float sheen,
         float sheenTint,
+        vec3 sheenTintColor,
         float clearCoat,
         float clearcoatGloss,
 
@@ -375,7 +377,7 @@ namespace DisneyBSDF{
             float reverseDiffusePdfW = abs(wo.z);
             float diffuse = EvaluateDisneyDiffuse(roughness,flatness, wi, wo, wm, thin);
 
-            vec3 lobeOfSheen =  EvaluateSheen(baseColor,sheen,sheenTint, HoL);
+            vec3 lobeOfSheen =  EvaluateSheen(baseColor,sheen,sheenTint, sheenTintColor, HoL);
 
             fPdf += pDiffuse * forwardDiffusePdfW;
             rPdf += pDiffuse * reverseDiffusePdfW;
@@ -404,7 +406,7 @@ namespace DisneyBSDF{
         if(upperHemisphere) {
             float forwardMetallicPdfW;
             float reverseMetallicPdfW;
-            vec3 Spec = EvaluateDisneyBRDF(baseColor,  metallic, subsurface,  specular, roughness, specularTint, anisotropic, sheen, sheenTint, clearCoat, clearcoatGloss, ior, is_inside, wi, wo, forwardMetallicPdfW, reverseMetallicPdfW);
+            vec3 Spec = EvaluateDisneyBRDF(baseColor,  metallic, subsurface,  specular, roughness, specularTint, anisotropic, sheen, sheenTint, sheenTintColor, clearCoat, clearcoatGloss, ior, is_inside, wi, wo, forwardMetallicPdfW, reverseMetallicPdfW);
 
             reflectance += Spec;
             fPdf += pSpecular * forwardMetallicPdfW / (4 * abs(HoL) );
@@ -681,6 +683,7 @@ namespace DisneyBSDF{
         float scatterDistance,
         float sheen,
         float sheenTint,
+        vec3 sheenTintColor,
         float roughness,
         float flatness,
         float subsurface,
@@ -762,7 +765,7 @@ namespace DisneyBSDF{
         }
 
         float HoL = dot(wm,wo);
-        vec3 sheenTerm = EvaluateSheen(baseColor, sheen, sheenTint, HoL);
+        vec3 sheenTerm = EvaluateSheen(baseColor, sheen, sheenTint, sheenTintColor, HoL);
         float diff = EvaluateDisneyDiffuse(1.0, flatness, wi, wo, wm, thin);
         if(wi.z<0)
             diff = 1.0;
@@ -847,6 +850,7 @@ namespace DisneyBSDF{
         float anisotropic,
         float sheen,
         float sheenTint,
+        vec3 sheenTintColor,
         float clearCoat,
         float clearcoatGloss,
         float flatness,
@@ -909,7 +913,7 @@ namespace DisneyBSDF{
             pLobe = pSpecTrans;
         }else {
             isDiff = true;
-            success = SampleDisneyDiffuse(seed, baseColor, transmiianceColor, sssColor, scatterDistance, sheen, sheenTint, roughness, flatness, subsurface, thin, wo, T, B, N, wi, fPdf, rPdf, reflectance, flag, phaseFuncion, extinction,is_inside, isSS);
+            success = SampleDisneyDiffuse(seed, baseColor, transmiianceColor, sssColor, scatterDistance, sheen, sheenTint, sheenTintColor, roughness, flatness, subsurface, thin, wo, T, B, N, wi, fPdf, rPdf, reflectance, flag, phaseFuncion, extinction,is_inside, isSS);
             pLobe = pDiffuse;
         }
         //reflectance = clamp(reflectance, vec3(0,0,0), vec3(1,1,1));

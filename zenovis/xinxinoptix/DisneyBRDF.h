@@ -244,6 +244,7 @@ static __inline__ __device__ float pdf(
         float anisotropic,
         float sheen,
         float sheenTint,
+        vec3 sheenTintColor,
         float clearcoat,
         float clearcoatGloss,
         vec3 N,
@@ -282,6 +283,7 @@ static __inline__ __device__ vec3 sample_f(
         float anisotropic,
         float sheen,
         float sheenTint,
+        vec3 sheenTintColor,
         float clearcoat,
         float clearcoatGloss,
         vec3 N,
@@ -330,6 +332,7 @@ static __inline__ __device__ vec3 eval(
         float anisotropic,
         float sheen,
         float sheenTint,
+        vec3 sheenTintColor,
         float clearcoat,
         float clearcoatGloss,
         vec3 N,
@@ -352,7 +355,7 @@ static __inline__ __device__ vec3 eval(
 
         vec3 Ctint = Cdlum > 0.0f ? Cdlin / Cdlum : vec3(1.0f,1.0f,1.0f);
         vec3 Cspec0 = mix(specular*0.08f*mix(vec3(1,1,1), Ctint, specularTint), Cdlin, metallic);
-        vec3 Csheen = mix(vec3(1.0f,1.0f,1.0f), Ctint, sheenTint);
+        vec3 Csheen = mix(vec3(1.0f,1.0f,1.0f), Ctint, sheenTint) * sheenTintColor;
 
         //diffuse
         float Fd90 = 0.5f + 2.0f * ndoth * ndoth * roughness;
