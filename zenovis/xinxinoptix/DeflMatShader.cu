@@ -80,6 +80,7 @@ MatInput const &attrs) {
     float mat_smoothness = 0.0f;
     vec3  mat_sssColor = vec3(0.0f,0.0f,0.0f);
     vec3  mat_sssParam = vec3(0.0f,0.0f,0.0f);
+    float  mat_sssScale = 1.0f;
     vec3  mat_normal = vec3(0.0f, 0.0f, 1.0f);
     vec3 mat_emission = vec3(0.0f, 0.0f,0.0f);
     float mat_emissionIntensity = 0.0f;
@@ -115,7 +116,7 @@ MatInput const &attrs) {
         mats.thin = mat_thin;
         mats.doubleSide = mat_doubleSide;
         mats.sssColor = mat_sssColor;
-        mats.sssParam = mat_sssParam;
+        mats.sssParam = mat_sssScale * mat_sssParam;
         mats.scatterStep = mat_scatterStep;
         mats.smoothness = mat_smoothness;
         return mats;
