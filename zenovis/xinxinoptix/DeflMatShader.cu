@@ -68,7 +68,7 @@ MatInput const &attrs) {
     float mat_sheenTint = 0.0;
     vec3  mat_sheenTintColor = vec3(1.0, 1.0, 1.0);
     float mat_clearcoat = 0.0;
-    float mat_clearcoatGloss = 0.0;
+    float mat_clearcoatRoughness = 0.0;
     float mat_opacity = 0.0;
     float mat_specTrans = 0.0;
     float mat_ior = 1.0;
@@ -82,6 +82,7 @@ MatInput const &attrs) {
     vec3  mat_sssParam = vec3(0.0f,0.0f,0.0f);
     vec3  mat_normal = vec3(0.0f, 0.0f, 1.0f);
     vec3 mat_emission = vec3(0.0f, 0.0f,0.0f);
+    float mat_emissionIntensity = 0.0f;
     float mat_displacement = 0.0f;
     //GENERATED_END_MARK
     /** generated code here end **/
@@ -103,10 +104,10 @@ MatInput const &attrs) {
         mats.sheenTint = mat_sheenTint;
         mats.sheenTintColor = mat_sheenTintColor;
         mats.clearcoat = clamp(mat_clearcoat, 0.0f, 1.0f);
-        mats.clearcoatGloss = mat_clearcoatGloss;
+        mats.clearcoatGloss = 1.0 - mat_clearcoatRoughness;
         mats.opacity = mat_opacity;
         mats.nrm = mat_normal;
-        mats.emission = mat_emission;
+        mats.emission = mat_emission * mat_emissionIntensity;
         mats.specTrans = clamp(mat_specTrans, 0.0f, 1.0f);
         mats.ior = mat_ior;
         mats.scatterDistance = mat_scatterDistance;
