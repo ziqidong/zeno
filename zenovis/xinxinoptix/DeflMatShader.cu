@@ -108,7 +108,7 @@ MatInput const &attrs) {
         mats.sheenTintColor = mat_sheenTintColor;
         mats.clearcoat = clamp(mat_clearcoat, 0.0f, 1.0f);
         mats.clearcoatGloss = 1.0 - mat_clearcoatRoughness;
-        mats.opacity = mat_opacity;
+        mats.opacity = 1.0 - mat_opacity;
         mats.nrm = mat_normal;
         mats.emission = mat_emission * mat_emissionIntensity;
         mats.specTrans = clamp(mat_specTrans, 0.0f, 1.0f);
@@ -421,7 +421,7 @@ extern "C" __global__ void __anyhit__shadow_cutout()
     unsigned short isLight = rt_data->lightMark[inst_idx * 1024 + prim_idx];
 
     // Stochastic alpha test to get an alpha blend effect.
-    if (opacity >0.99 || isLight == 1) // No need to calculate an expensive random number if the test is going to fail anyway.
+    if (opacity < 0.01 || isLight == 1) // No need to calculate an expensive random number if the test is going to fail anyway.
     {
         optixIgnoreIntersection();
     }
