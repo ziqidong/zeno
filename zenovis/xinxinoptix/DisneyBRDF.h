@@ -240,6 +240,7 @@ static __inline__ __device__ float pdf(
         float subsurface,
         float specular,
         float roughness,
+        vec3  specularColor,
         float specularTint,
         float anisotropic,
         float sheen,
@@ -279,6 +280,7 @@ static __inline__ __device__ vec3 sample_f(
         float subsurface,
         float specular,
         float roughness,
+        vec3  specularColor,
         float specularTint,
         float anisotropic,
         float sheen,
@@ -328,6 +330,7 @@ static __inline__ __device__ vec3 eval(
         float subsurface,
         float specular,
         float roughness,
+        vec3  specularColor,
         float specularTint,
         float anisotropic,
         float sheen,
@@ -354,7 +357,7 @@ static __inline__ __device__ vec3 eval(
         float Cdlum = 0.3f*Cdlin.x + 0.6f*Cdlin.y + 0.1f*Cdlin.z;
 
         vec3 Ctint = Cdlum > 0.0f ? Cdlin / Cdlum : vec3(1.0f,1.0f,1.0f);
-        vec3 Cspec0 = mix(specular*0.08f*mix(vec3(1,1,1), Ctint, specularTint), Cdlin, metallic);
+        vec3 Cspec0 = mix(specular*0.08f*mix(vec3(1,1,1), Ctint, specularTint) * specularColor, Cdlin, metallic);
         vec3 Csheen = mix(vec3(1.0f,1.0f,1.0f), Ctint, sheenTint) * sheenTintColor;
 
         //diffuse

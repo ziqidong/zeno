@@ -8,6 +8,7 @@ struct MatOutput {
     float roughness;
     float subsurface;
     float specular;
+    vec3  specularColor;
     float specularTint;
     float anisotropic;
     float sheen;

@@ -131,13 +131,14 @@ namespace DisneyBSDF{
             vec3 baseColor,
             float metallic,
             float ior,
+            vec3  specularColor,
             float specularTint,
             float HoV,
             float HoL,
             bool is_inside)
     {
         vec3 tint = BRDFBasics::CalculateTint(baseColor);
-        vec3 R0 = BRDFBasics::fresnelSchlickR0(ior) * mix(vec3(1.0f), tint, specularTint);
+        vec3 R0 = BRDFBasics::fresnelSchlickR0(ior) * mix(vec3(1.0f), tint, specularTint) * specularColor;
              R0 = mix(R0, baseColor, metallic);
         float dielectricFresnel = BRDFBasics::fresnelDielectric(HoV, 1.0f, ior, is_inside);
         vec3 metallicFresnel = BRDFBasics::fresnelSchlick(R0, HoL);
@@ -152,6 +153,7 @@ namespace DisneyBSDF{
             float subsurface,
             float specular,
             float roughness,
+            vec3  specularColor,
             float specularTint,
             float anisotropic,
             float sheen,
@@ -188,7 +190,7 @@ namespace DisneyBSDF{
         float gl = BRDFBasics::SeparableSmithGGXG1(wi, wm, ax, ay);
         float gv = BRDFBasics::SeparableSmithGGXG1(wo, wm, ax, ay);
 
-        vec3 f = DisneyFresnel(baseColor, metallic, ior, specularTint, HoV, HoL, is_inside);
+        vec3 f = DisneyFresnel(baseColor, metallic, ior, specularColor, specularTint, HoV, HoL, is_inside);
         BRDFBasics::GgxVndfAnisotropicPdf(wi, wm, wo, ax, ay, fPdf, rPdf);
         //fPdf = abs(NoL) * gv * d / abs(NoL);
         //rPdf = abs(NoV) * gl * d / abs(NoV);
@@ -204,6 +206,7 @@ namespace DisneyBSDF{
         vec3 baseColor,
         float metallic,
         float ior,
+        vec3  specularColor,
         float specularTint,
         float roughness,
         float ax,
@@ -308,6 +311,7 @@ namespace DisneyBSDF{
         float subsurface,
         float specular,
         float roughness,
+        vec3  specularColor,
         float specularTint,
         float anisotropic,
         float sheen,
@@ -391,7 +395,7 @@ namespace DisneyBSDF{
             float tax, tay;
             BRDFBasics::CalculateAnisotropicParams(rscaled, anisotropic, tax, tay);
 
-            float3 transmission = EvaluateDisneySpecTransmission(baseColor,metallic,ior,specularTint,roughness, tax, tay, thin, is_inside,wo,wi);
+            float3 transmission = EvaluateDisneySpecTransmission(baseColor,metallic,ior,specularColor,specularTint,roughness, tax, tay, thin, is_inside,wo,wi);
             reflectance += transmissionW * transmission;
 
             float forwardTransmissivePdfW;
@@ -406,7 +410,7 @@ namespace DisneyBSDF{
         if(upperHemisphere) {
             float forwardMetallicPdfW;
             float reverseMetallicPdfW;
-            vec3 Spec = EvaluateDisneyBRDF(baseColor,  metallic, subsurface,  specular, roughness, specularTint, anisotropic, sheen, sheenTint, sheenTintColor, clearCoat, clearcoatGloss, ior, is_inside, wi, wo, forwardMetallicPdfW, reverseMetallicPdfW);
+            vec3 Spec = EvaluateDisneyBRDF(baseColor,  metallic, subsurface,  specular, roughness,specularColor, specularTint, anisotropic, sheen, sheenTint, sheenTintColor, clearCoat, clearcoatGloss, ior, is_inside, wi, wo, forwardMetallicPdfW, reverseMetallicPdfW);
 
             reflectance += Spec;
             fPdf += pSpecular * forwardMetallicPdfW / (4 * abs(HoL) );
@@ -425,6 +429,7 @@ namespace DisneyBSDF{
             vec3 baseColor,
             float metallic,
             float ior,
+            vec3  specularColor,
             float specularTint,
             float roughness,
             float anisotropic,
@@ -458,7 +463,7 @@ namespace DisneyBSDF{
             return false;
         }
 
-        vec3 F = DisneyFresnel(baseColor, metallic, ior, specularTint, dot(wm, wo), dot(wm, wi), is_inside);
+        vec3 F = DisneyFresnel(baseColor, metallic, ior, specularColor, specularTint, dot(wm, wo), dot(wm, wi), is_inside);
         float G1v = BRDFBasics::SeparableSmithGGXG1(wo, wm, ax, ay);
         float3 specular = G1v * F;
         reflectance = specular;
@@ -846,6 +851,7 @@ namespace DisneyBSDF{
         float subsurface,
         float specular,
         float roughness,
+        vec3  specularColor,
         float specularTint,
         float anisotropic,
         float sheen,
@@ -890,8 +896,9 @@ namespace DisneyBSDF{
                     baseColor,
                     metallic,
                     ior, 
-                    specularTint, 
-                    roughness, 
+                    specularColor,
+                    specularTint,
+                    roughness,
                     anisotropic, 
                     is_inside, 
                     N,
