@@ -172,18 +172,7 @@ ZenoLights::ZenoLights(QWidget *parent) : QWidget(parent) {
             zeno::vec3f pos = ptr->userData().getLiterial<zeno::vec3f>("pos", zeno::vec3f(0.0f));
             zeno::vec3f scale = ptr->userData().getLiterial<zeno::vec3f>("scale", zeno::vec3f(0.0f));
             zeno::vec3f rotate = ptr->userData().getLiterial<zeno::vec3f>("rotate", zeno::vec3f(0.0f));
-            zeno::vec3f clr;
-            if (ptr->userData().has("color")) {
-                clr = ptr->userData().getLiterial<zeno::vec3f>("color");
-            }
-            else {
-                if (prim_in->verts.has_attr("clr")) {
-                    clr = prim_in->verts.attr<zeno::vec3f>("clr")[0];
-                } else {
-                    clr = zeno::vec3f(30000.0f, 30000.0f, 30000.0f);
-                }
-            }
-
+            zeno::vec3f clr = ptr->userData().getLiterial<zeno::vec3f>("color");
             float intensity = ptr->userData().getLiterial<float>("intensity", 1);
             posXEdit->setText(QString::number(pos[0]));
             posYEdit->setText(QString::number(pos[1]));
@@ -507,21 +496,6 @@ void ZenoLights::modifyLightData() {
     auto prim_in = dynamic_cast<zeno::PrimitiveObject *>(obj.get());
 
     if(prim_in){
-        auto &prim_verts = prim_in->verts;
-        prim_verts[0] = verts[0];
-        prim_verts[1] = verts[1];
-        prim_verts[2] = verts[2];
-        prim_verts[3] = verts[3];
-        prim_in->verts.attr<zeno::vec3f>("clr")[0] = zeno::vec3f(r,g,b) * intensity;
-
-        prim_in->userData().setLiterial<zeno::vec3f>("pos", zeno::vec3f(posX, posY, posZ));
-        prim_in->userData().setLiterial<zeno::vec3f>("scale", zeno::vec3f(scaleX, scaleY, scaleZ));
-        prim_in->userData().setLiterial<zeno::vec3f>("rotate", zeno::vec3f(rotateX, rotateY, rotateZ));
-        if (prim_in->userData().has("intensity")) {
-            prim_in->userData().setLiterial<zeno::vec3f>("color", zeno::vec3f(r, g, b));
-            prim_in->userData().setLiterial<float>("intensity", std::move(intensity));
-        }
-
         scene->objectsMan->needUpdateLight = true;
         zenoApp->getMainWindow()->getDisplayWidget()->getViewportWidget()->setSimpleRenderOption();
         zenoApp->getMainWindow()->updateViewport();
