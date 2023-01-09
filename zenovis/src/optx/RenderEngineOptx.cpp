@@ -382,34 +382,21 @@ struct GraphicsManager {
                 //zeno::log_info("processing light key {}", key.c_str());
                 auto ivD = prim_in->userData().getLiterial<int>("ivD", 0);
 
-                auto prim = std::make_shared<zeno::PrimitiveObject>();
-                prim->verts.resize(5);
-
                 auto p0 = prim_in->verts[prim_in->tris[0][0]];
                 auto p1 = prim_in->verts[prim_in->tris[0][1]];
                 auto p2 = prim_in->verts[prim_in->tris[0][2]];
                 auto e1 = p0 - p1;
                 auto e2 = p2 - p1;
-                auto g_e1 = glm::vec3(e1[0], e1[1], e1[2]);
-                auto g_e2 = glm::vec3(e2[0], e2[1], e2[2]);
-                glm::vec3 g_nor;
-
-                g_nor = glm::normalize(glm::cross(g_e1, g_e2));
-                auto nor = zeno::vec3f(g_nor.x, g_nor.y, g_nor.z);
+                auto norm = zeno::normalize(zeno::cross(e1, e2));
                 zeno::vec3f clr;
                 if (prim_in->verts.has_attr("clr")) {
                     clr = prim_in->verts.attr<zeno::vec3f>("clr")[0];
                 } else {
                     clr = zeno::vec3f(30000.0f, 30000.0f, 30000.0f);
                 }
-                prim->verts[0] = p1;
-                prim->verts[1] = e1;
-                prim->verts[2] = e2;
-                prim->verts[3] = nor;
-                prim->verts[4] = clr;
 
-                xinxinoptix::load_light(key, prim->verts[0].data(), prim->verts[1].data(), prim->verts[2].data(),
-                                        prim->verts[3].data(), prim->verts[4].data());
+                xinxinoptix::load_light(key, p1.data(), e1.data(), e2.data(),
+                                        norm.data(), clr.data());
             }
             else if (prim_in->userData().get2<int>("ProceduralSky", 0) == 1) {
                 sky_found = true;
