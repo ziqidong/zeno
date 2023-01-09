@@ -388,8 +388,12 @@ struct GraphicsManager {
                 auto e1 = p0 - p1;
                 auto e2 = p2 - p1;
                 auto norm = zeno::normalize(zeno::cross(e1, e2));
-                auto clr = prim_in->userData().get2<zeno::vec3f>("color");
-                clr *= prim_in->userData().get2<float>("intensity");
+                zeno::vec3f clr;
+                if (prim_in->verts.has_attr("clr")) {
+                    clr = prim_in->verts.attr<zeno::vec3f>("clr")[0];
+                } else {
+                    clr = zeno::vec3f(30000.0f, 30000.0f, 30000.0f);
+                }
 
                 xinxinoptix::load_light(key, p1.data(), e1.data(), e2.data(),
                                         norm.data(), clr.data());
