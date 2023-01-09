@@ -172,17 +172,7 @@ ZenoLights::ZenoLights(QWidget *parent) : QWidget(parent) {
             zeno::vec3f pos = ptr->userData().getLiterial<zeno::vec3f>("pos", zeno::vec3f(0.0f));
             zeno::vec3f scale = ptr->userData().getLiterial<zeno::vec3f>("scale", zeno::vec3f(0.0f));
             zeno::vec3f rotate = ptr->userData().getLiterial<zeno::vec3f>("rotate", zeno::vec3f(0.0f));
-            zeno::vec3f clr;
-            if (ptr->userData().has("color")) {
-                clr = ptr->userData().getLiterial<zeno::vec3f>("color");
-            }
-            else {
-                if (prim_in->verts.has_attr("clr")) {
-                    clr = prim_in->verts.attr<zeno::vec3f>("clr")[0];
-                } else {
-                    clr = zeno::vec3f(30000.0f, 30000.0f, 30000.0f);
-                }
-            }
+            zeno::vec3f clr = ptr->userData().getLiterial<zeno::vec3f>("color");
 
             float intensity = ptr->userData().getLiterial<float>("intensity", 1);
             posXEdit->setText(QString::number(pos[0]));
