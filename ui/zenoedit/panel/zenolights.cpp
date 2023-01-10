@@ -433,37 +433,6 @@ void ZenoLights::updateLights() {
     dataModel->updateByObjectsMan();
 }
 
-std::vector<zeno::vec3f> ZenoLights::computeLightPrim(zeno::vec3f position, zeno::vec3f rotate, zeno::vec3f scale){
-    auto start_point = zeno::vec3f(0.5, 0, 0.5);
-    float rm = 1.0f;
-    float cm = 1.0f;
-    std::vector<zeno::vec3f> verts;
-    float ax = rotate[0] * (3.14159265358979323846 / 180.0);
-    float ay = rotate[1] * (3.14159265358979323846 / 180.0);
-    float az = rotate[2] * (3.14159265358979323846 / 180.0);
-    glm::mat3 mx = glm::mat3(1, 0, 0, 0, cos(ax), -sin(ax), 0, sin(ax), cos(ax));
-    glm::mat3 my = glm::mat3(cos(ay), 0, sin(ay), 0, 1, 0, -sin(ay), 0, cos(ay));
-    glm::mat3 mz = glm::mat3(cos(az), -sin(az), 0, sin(az), cos(az), 0, 0, 0, 1);
-
-    for(int i=0; i<=1; i++){
-        auto rp = start_point - zeno::vec3f(i*rm, 0, 0);
-        for(int j=0; j<=1; j++){
-            auto p = rp - zeno::vec3f(0, 0, j*cm);
-            // S R T
-            p = p * scale;
-            auto gp = glm::vec3(p[0], p[1], p[2]);
-            gp = mz * my * mx * gp;
-            p = zeno::vec3f(gp.x, gp.y, gp.z);
-            auto zcp = zeno::vec3f(p[0], p[1], p[2]);
-            zcp = zcp + position;
-
-            verts.push_back(zcp);
-        }
-    }
-
-    return verts;
-}
-
 void ZenoLights::modifyLightData() {
     auto index = this->lights_view->currentIndex();
     //printf("modifyLightData %d\n", index.row());
@@ -490,20 +459,12 @@ void ZenoLights::modifyLightData() {
     zeno::vec3f pos = zeno::vec3f(posX, posY, posZ);
     zeno::vec3f scale = zeno::vec3f(scaleX, scaleY, scaleZ);
     zeno::vec3f rotate = zeno::vec3f(rotateX, rotateY, rotateZ);
-    auto verts = computeLightPrim(pos, rotate, scale);
 
     auto scene = Zenovis::GetInstance().getSession()->get_scene();
     std::shared_ptr<zeno::IObject> obj = scene->objectsMan->lightObjects[name];
     auto prim_in = dynamic_cast<zeno::PrimitiveObject *>(obj.get());
 
     if(prim_in){
-        auto &prim_verts = prim_in->verts;
-        prim_verts[0] = verts[0];
-        prim_verts[1] = verts[1];
-        prim_verts[2] = verts[2];
-        prim_verts[3] = verts[3];
-        prim_in->verts.attr<zeno::vec3f>("clr")[0] = zeno::vec3f(r,g,b) * intensity;
-
         prim_in->userData().setLiterial<zeno::vec3f>("pos", zeno::vec3f(posX, posY, posZ));
         prim_in->userData().setLiterial<zeno::vec3f>("scale", zeno::vec3f(scaleX, scaleY, scaleZ));
         prim_in->userData().setLiterial<zeno::vec3f>("rotate", zeno::vec3f(rotateX, rotateY, rotateZ));
