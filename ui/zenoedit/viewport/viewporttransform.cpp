@@ -1,5 +1,7 @@
 #include "viewporttransform.h"
-
+#include "zenoapplication.h"
+#include "zenomainwindow.h"
+#include "viewport/viewportwidget.h"
 #include <zeno/funcs/PrimitiveTools.h>
 #include <zeno/types/UserData.h>
 #include <zenovis/ObjectsManager.h>
@@ -303,6 +305,16 @@ void FakeTransformer::endTransform(bool moved) {
                 for (int i = 0; i < 3; i++)
                     scale[i] *= m_scale[i];
                 user_data.setLiterial("_scale", scale);
+            }
+            if (user_data.get2<int>("isL", 0)) {
+                if (user_data.has("_translate")) {
+                    auto pos = user_data.get2<vec3f>("_translate");
+                    user_data.set2("pos", pos);
+                }
+                auto scene = Zenovis::GetInstance().getSession()->get_scene();
+                scene->objectsMan->needUpdateLight = true;
+                zenoApp->getMainWindow()->getDisplayWidget()->getViewportWidget()->setSimpleRenderOption();
+                zenoApp->getMainWindow()->updateViewport();
             }
         }
 
