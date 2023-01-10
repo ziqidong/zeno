@@ -383,7 +383,7 @@ struct GraphicsManager {
                 auto ivD = prim_in->userData().getLiterial<int>("ivD", 0);
                 auto pos = prim_in->userData().get2<zeno::vec3f>("pos");
                 auto rotate = prim_in->userData().get2<zeno::vec3f>("rotate");
-                auto scale = prim_in->userData().get2<zeno::vec3f>("color");
+                auto scale = prim_in->userData().get2<zeno::vec3f>("scale");
                 auto computeLightPrim = [](zeno::vec3f position, zeno::vec3f rotate, zeno::vec3f scale){
                     auto start_point = zeno::vec3f(0.5, 0, 0.5);
                     float rm = 1.0f;
