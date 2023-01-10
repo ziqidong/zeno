@@ -311,6 +311,10 @@ void FakeTransformer::endTransform(bool moved) {
                     auto pos = user_data.get2<vec3f>("_translate");
                     user_data.set2("pos", pos);
                 }
+                if (user_data.has("_rotate")) {
+                    auto _rotate = user_data.get2<vec4f>("_rotate");
+                    user_data.set2("quaternion", _rotate);
+                }
                 if (user_data.has("_scale")) {
                     auto scale = user_data.get2<vec3f>("_scale");
                     user_data.set2("scale", scale);

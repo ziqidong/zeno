@@ -22,6 +22,7 @@
 #include "zeno/core/Session.h"
 #include <variant>
 #include "../../xinxinoptix/OptiXStuff.h"
+#include "glm/gtx/quaternion.hpp"
 #include <zeno/types/PrimitiveTools.h>
 namespace zenovis::optx {
 
@@ -383,8 +384,9 @@ struct GraphicsManager {
                 auto ivD = prim_in->userData().getLiterial<int>("ivD", 0);
                 auto pos = prim_in->userData().get2<zeno::vec3f>("pos");
                 auto rotate = prim_in->userData().get2<zeno::vec3f>("rotate");
+                auto quaternion = prim_in->userData().get2<zeno::vec4f>("quaternion");
                 auto scale = prim_in->userData().get2<zeno::vec3f>("scale");
-                auto computeLightPrim = [](zeno::vec3f position, zeno::vec3f rotate, zeno::vec3f scale){
+                auto computeLightPrim = [](zeno::vec3f position, zeno::vec3f rotate, zeno::vec4f quaternion, zeno::vec3f scale){
                     auto start_point = zeno::vec3f(0.5, 0, 0.5);
                     float rm = 1.0f;
                     float cm = 1.0f;
@@ -395,6 +397,8 @@ struct GraphicsManager {
                     glm::mat3 mx = glm::mat3(1, 0, 0, 0, cos(ax), -sin(ax), 0, sin(ax), cos(ax));
                     glm::mat3 my = glm::mat3(cos(ay), 0, sin(ay), 0, 1, 0, -sin(ay), 0, cos(ay));
                     glm::mat3 mz = glm::mat3(cos(az), -sin(az), 0, sin(az), cos(az), 0, 0, 0, 1);
+                    glm::quat myQuat(quaternion[3], quaternion[0], quaternion[1], quaternion[2]);
+                    glm::mat3 matQuat  = glm::toMat3(myQuat);
 
                     for(int i=0; i<=1; i++){
                         auto rp = start_point - zeno::vec3f(i*rm, 0, 0);
@@ -403,7 +407,7 @@ struct GraphicsManager {
                             // S R T
                             p = p * scale;
                             auto gp = glm::vec3(p[0], p[1], p[2]);
-                            gp = mz * my * mx * gp;
+                            gp = mz * my * mx * matQuat * gp;
                             p = zeno::vec3f(gp.x, gp.y, gp.z);
                             auto zcp = zeno::vec3f(p[0], p[1], p[2]);
                             zcp = zcp + position;
@@ -413,7 +417,7 @@ struct GraphicsManager {
                     return verts;
                 };
 
-                auto verts = computeLightPrim(pos, rotate, scale);
+                auto verts = computeLightPrim(pos, rotate, quaternion, scale);
                 auto p0 = verts[0];
                 auto p1 = verts[1];
                 auto p2 = verts[2];

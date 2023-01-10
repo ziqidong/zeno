@@ -343,6 +343,7 @@ struct LightNode : INode {
         prim->userData().set2("pos", std::move(zeno::vec3f(0)));
         prim->userData().set2("scale", std::move(zeno::vec3f(1)));
         prim->userData().set2("rotate", std::move(zeno::vec3f(0)));
+        prim->userData().set2("quaternion", std::move(zeno::vec4f(0, 0, 0, 1)));
         prim->userData().set2("color", std::move(color));
         prim->userData().set2("intensity", std::move(intensity));
 
