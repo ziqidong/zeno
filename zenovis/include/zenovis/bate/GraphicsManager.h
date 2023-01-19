@@ -22,10 +22,7 @@ struct GraphicsManager {
     }
 
     bool load_realtime_object(const std::string &key, std::shared_ptr<zeno::IObject> const &obj) {
-        int interactive;
-        if (obj->userData().has("interactive"))
-            interactive = obj->userData().getLiterial<int>("interactive");
-        else return false;
+        bool interactive = obj->userData().getLiterial<bool>("interactive", false);
         if (interactive) {
             zeno::log_debug("load_realtime_object: loading realtime graphics [{}]", key);
             // printf("reload %s\n", key.c_str());
@@ -34,9 +31,8 @@ struct GraphicsManager {
             ig->nameid = key;
             ig->objholder = obj;
             realtime_graphics.try_emplace(key, std::move(ig));
-            return true;
         }
-        return false;
+        return interactive;
     }
 
     bool load_objects(std::vector<std::pair<std::string, std::shared_ptr<zeno::IObject>>> const &objs) {

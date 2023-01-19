@@ -30,6 +30,7 @@ Scene::Scene()
       drawOptions(std::make_unique<DrawOptions>()),
       shaderMan(std::make_unique<ShaderManager>()),
       objectsMan(std::make_unique<ObjectsManager>()),
+      lightCameraMan(std::make_unique<LightCameraManager>()),
       renderMan(std::make_unique<RenderManager>(this)) {
 
     auto version = (const char *)glGetString(GL_VERSION);
