@@ -299,6 +299,9 @@ struct FrameBufferPicker : IPicker {
                 auto p = dynamic_cast<PrimitiveObject*>(prim.get());
                 if (p) prims.emplace_back(std::make_pair(prim_name, p));
             }
+            for (const auto& [prim_name, prim] : scene->lightCameraMan->proxy_prims) {
+                prims.emplace_back(std::make_pair(prim_name, prim.get()));
+            }
         }
 
         // shading primitive objects
