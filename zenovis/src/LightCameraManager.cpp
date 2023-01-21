@@ -24,6 +24,13 @@ std::string zenovis::LightCameraManager::next_id(const std::string& prefix) {
     return nid;
 }
 
+void zenovis::LightCameraManager::gen_proxy_prims() {
+    this->proxy_prims.clear();
+    for (const auto&[name, item]: this->items) {
+        this->proxy_prims[name] = item->proxy_prim();
+    }
+}
+
 std::shared_ptr<zeno::PrimitiveObject> zenovis::LightAreaObject::proxy_prim() {
     auto prim = std::make_shared<zeno::PrimitiveObject>();
     auto& user_data = prim->userData();

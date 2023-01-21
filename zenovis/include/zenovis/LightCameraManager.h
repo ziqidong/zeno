@@ -43,6 +43,8 @@ struct LightAreaObject : LightCameraItem {
 
 struct LightCameraManager : zeno::disable_copy {
     std::unordered_map<std::string, std::shared_ptr<LightCameraItem>> items;
+    std::unordered_map<std::string, std::shared_ptr<zeno::PrimitiveObject>> proxy_prims;
+    void gen_proxy_prims();
     void addLightArea();
     std::string next_id(const std::string& prefix);
 };
