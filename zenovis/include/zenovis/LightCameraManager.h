@@ -15,17 +15,18 @@
 namespace zenovis {
 
 struct LightAreaData {
-    bool enable;
-    bool display;
-    zeno::vec3f color;
-    float intensity;
-    zeno::vec3f translation;
-    zeno::vec3f eulerXYZ;
-    zeno::vec4f quatRotation;
-    zeno::vec3f scaling;
+    bool enable = true;
+    bool display = true;
+    zeno::vec3f color = {1};
+    float intensity = 1;
+    zeno::vec3f translation = {0};
+    zeno::vec3f eulerXYZ = {0};
+    zeno::vec4f quatRotation = {0, 0, 0, 1};
+    zeno::vec3f scaling = {1};
 };
 
 struct LightCameraItem {
+    LightAreaData data;
     std::unordered_map<std::string, std::any> channel_curves;
     float get_bool(std::string channel);
     float get_float(std::string channel);
@@ -33,20 +34,21 @@ struct LightCameraItem {
     zeno::vec3f get_vec3f(std::string channel);
     zeno::vec4f get_vec4f(std::string channel);
     zeno::vec4f get_quaternion(std::string channel);
-    virtual std::shared_ptr<zeno::PrimitiveObject> proxy_prim() = 0;
+    virtual void proxy_prim(zeno::PrimitiveObject* prim) = 0;
 };
 
 struct LightAreaObject : LightCameraItem {
     LightAreaData get_data();
-    std::shared_ptr<zeno::PrimitiveObject> proxy_prim() override;
+    void proxy_prim(zeno::PrimitiveObject* prim) override;
 };
 
 struct LightCameraManager : zeno::disable_copy {
     std::unordered_map<std::string, std::shared_ptr<LightCameraItem>> items;
     std::unordered_map<std::string, std::shared_ptr<zeno::PrimitiveObject>> proxy_prims;
-    void gen_proxy_prims();
+    void update_proxy_prims();
     void addLightArea();
     std::string next_id(const std::string& prefix);
+    bool has(std::string nid) const;
 };
 }
 

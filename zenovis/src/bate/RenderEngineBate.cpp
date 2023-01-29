@@ -40,7 +40,7 @@ struct RenderEngineBate : RenderEngine {
     void update() override {
         graphicsMan->load_objects(scene->objectsMan->pairsShared());
         auto &man = scene->lightCameraMan;
-        man->gen_proxy_prims();
+        man->update_proxy_prims();
 //        zeno::log_info("{}", (int)man->items.size());
         for (const auto & [k, v]: man->proxy_prims) {
 //            zeno::log_info("{}", k);
