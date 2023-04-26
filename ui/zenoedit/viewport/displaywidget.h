@@ -32,6 +32,7 @@ public:
     void setSimpleRenderOption();
     bool isCameraMoving() const;
     bool isPlaying() const;
+    void setCam(QString camName);
 
 public slots:
     void updateFrame(const QString& action = "");
@@ -48,6 +49,7 @@ public slots:
 
 signals:
     void frameUpdated(int new_frame);
+    void cameraListUpdated(QVariant);
 
 private:
     bool isOptxRendering() const;

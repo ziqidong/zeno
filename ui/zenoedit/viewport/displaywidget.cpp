@@ -63,6 +63,7 @@ DisplayWidget::DisplayWidget(bool bGLView, QWidget *parent)
     //it seems there is no need to use timer, because optix is seperated from GL and update by a thread.
     m_pTimer = new QTimer(this);
     connect(m_pTimer, SIGNAL(timeout()), this, SLOT(updateFrame()));
+    connect(m_glView, SIGNAL(cameraListUpdated(QVariant)), this, SIGNAL(cameraListUpdated(QVariant)));
 }
 
 DisplayWidget::~DisplayWidget()
@@ -158,6 +159,10 @@ bool DisplayWidget::isPlaying() const
     auto zenoVis = getZenoVis();
     ZASSERT_EXIT(zenoVis, false);
     return zenoVis->isPlaying();
+}
+
+void DisplayWidget::setCam(QString camName) {
+    m_glView->setCurrentCamera(camName.split(":")[0]);
 }
 
 void DisplayWidget::onPlayClicked(bool bChecked)
@@ -383,8 +388,10 @@ void DisplayWidget::beforeRun()
 
 void DisplayWidget::afterRun()
 {
-    if (m_glView)
+    if (m_glView) {
         m_glView->updateLightOnce = true;
+        m_glView->updateCameraListOnce = true;
+    }
 
     Zenovis *pZenoVis = getZenoVis();
     ZASSERT_EXIT(pZenoVis);
@@ -413,8 +420,10 @@ void DisplayWidget::onRun(int frameStart, int frameEnd, bool applyLightAndCamera
 
     launchProgram(pModel, frameStart, frameEnd, applyLightAndCameraOnly);
 
-    if (m_glView)
+    if (m_glView) {
         m_glView->updateLightOnce = true;
+        m_glView->updateCameraListOnce = true;
+    }
 
     Zenovis* pZenoVis = getZenoVis();
     ZASSERT_EXIT(pZenoVis);
@@ -447,7 +456,10 @@ void DisplayWidget::onRun() {
     }
 
     if (m_glView)
+    {
         m_glView->updateLightOnce = true;
+        m_glView->updateCameraListOnce = true;
+    }
 
     Zenovis* pZenoVis = getZenoVis();
     ZASSERT_EXIT(pZenoVis);

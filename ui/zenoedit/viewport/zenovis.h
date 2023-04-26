@@ -51,6 +51,7 @@ public:
     zenovis::Session *getSession() const;
     void updatePerspective(QVector2D const &resolution, PerspectiveInfo const &perspective);
     void updateCameraFront(QVector3D center, QVector3D front, QVector3D up);
+    void setCurrentCamera(QString camName);
 
 //private:
     void doFrameUpdate();
@@ -69,6 +70,7 @@ public:
     //QList<FRAME_FILE> m_frame_files;
 
     //bool m_bAddPoint = false;
+    QString m_currentCameraName;
 };
 
 #endif

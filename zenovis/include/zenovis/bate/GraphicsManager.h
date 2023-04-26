@@ -18,6 +18,8 @@ struct GraphicsManager {
         std::string, std::unique_ptr<IGraphic>>>> graphics;
     zeno::PolymorphicMap<std::map<std::string, std::unique_ptr<IGraphic>>> realtime_graphics;
 
+    bool skipCamera = false;
+
     explicit GraphicsManager(Scene *scene) : scene(scene) {
     }
 
@@ -44,6 +46,7 @@ struct GraphicsManager {
         realtime_graphics.clear();
         for (auto const &[key, obj] : objs) {
             if (load_realtime_object(key, obj)) continue;
+            if (skipCamera && key.find("MakeCamera") != std::string::npos) continue;
             if (ins.may_emplace(key)) {
                 zeno::log_debug("load_object: loading graphics [{}]", key);
                 auto ig = makeGraphic(scene, obj.get());

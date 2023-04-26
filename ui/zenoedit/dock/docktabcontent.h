@@ -146,6 +146,7 @@ private:
     ZToolBarButton* m_resizeViewport;
 
     QComboBox* m_cbRenderWay;
+    QComboBox *m_cbCameraList;
     QAction* m_pFocus;
     QAction *m_pOrigin;
     QAction *m_front;
@@ -158,7 +159,7 @@ private:
     QAction *m_move;
     QAction *m_rotate;
     QAction *m_scale;
-
+    QString m_curCamName;
     const bool m_bOptixView;
 };
 

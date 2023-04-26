@@ -37,6 +37,7 @@ ViewportWidget::ViewportWidget(QWidget* parent)
     : QGLWidget(parent)
     , m_camera(nullptr)
     , updateLightOnce(true)
+    , updateCameraListOnce(true)
     , m_pauseRenderDally(new QTimer)
     , m_wheelEventDally(new QTimer)
     , simpleRenderTime(0)
@@ -95,6 +96,10 @@ void ViewportWidget::setSimpleRenderOption() {
     scene->drawOptions->simpleRender = true;
     m_pauseRenderDally->stop();
     m_pauseRenderDally->start(simpleRenderTime*1000);  // Second to millisecond
+}
+
+void ViewportWidget::setCurrentCamera(QString camName) {
+    m_zenovis->setCurrentCamera(camName);
 }
 
 ViewportWidget::~ViewportWidget()
@@ -206,6 +211,18 @@ void ViewportWidget::paintGL()
             zenoApp->getMainWindow()->updateLightList();
             updateLightOnce = false;
         }
+    }
+    if (updateCameraListOnce)
+    {
+        QVector<QString> cameraList;
+        auto scene = getSession()->get_scene();
+        for (auto const &[key, ptr] : scene->objectsMan->pairs()) {
+            if (key.find("MakeCamera") != std::string::npos) {
+                cameraList.push_back(QString::fromStdString(key));
+            }
+        }
+        emit cameraListUpdated(QVariant::fromValue(cameraList));
+        updateCameraListOnce = false;
     }
 }
 
