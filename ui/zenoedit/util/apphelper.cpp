@@ -169,7 +169,11 @@ void AppHelper::modifyLightData(QPersistentModelIndex nodeIdx) {
     QVector<DisplayWidget *> views = pWin->viewports();
     for (auto pDisplay : views)
     {
-        Zenovis* pZenovis = views[0]->getZenoVis();
+        if (!pDisplay->isOptxRendering())
+        {
+            continue;
+        }
+        Zenovis *pZenovis = pDisplay->getZenoVis();
         ZASSERT_EXIT(pZenovis);
 
         auto scene = pZenovis->getSession()->get_scene();
@@ -201,7 +205,7 @@ void AppHelper::modifyLightData(QPersistentModelIndex nodeIdx) {
             }
 
             scene->objectsMan->needUpdateLight = true;
-            views[0]->setSimpleRenderOption();
+            pDisplay->setSimpleRenderOption();
             zenoApp->getMainWindow()->updateViewport();
         } else {
             zeno::log_info("modifyLightData not found {}", name);

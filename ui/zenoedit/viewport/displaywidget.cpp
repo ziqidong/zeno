@@ -144,6 +144,8 @@ void DisplayWidget::setSimpleRenderOption()
 {
     if (m_glView)
         m_glView->setSimpleRenderOption();
+    else
+        m_optixView->setSimpleRenderOption();
 }
 
 bool DisplayWidget::isCameraMoving() const

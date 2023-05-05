@@ -33,6 +33,7 @@ public:
     bool isCameraMoving() const;
     bool isPlaying() const;
     void setCam(QString camName);
+    bool isOptxRendering() const;
 
 public slots:
     void updateFrame(const QString& action = "");
@@ -52,7 +53,6 @@ signals:
     void cameraListUpdated(QVariant);
 
 private:
-    bool isOptxRendering() const;
     void initRecordMgr();
     void moveToFrame(int frame);
 
