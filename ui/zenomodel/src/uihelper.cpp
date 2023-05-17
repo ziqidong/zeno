@@ -218,8 +218,7 @@ QVariant UiHelper::parseStringByType(const QString &defaultValue, const QString 
         int val = defaultValue.toInt(&bOk);
         if (bOk) {
             return val;
-        }
-        else {
+        } else if (defaultValue != "" && defaultValue[0] == '=') {
             //type dismatch, try to convert to float.
             //disable it now because the sync problem is complicated and trivival.
             //float fVal = defaultValue.toFloat(&bOk);
@@ -229,6 +228,8 @@ QVariant UiHelper::parseStringByType(const QString &defaultValue, const QString 
             //    return val;
             //}
             return defaultValue;
+        } else {
+            return QVariant("badValue");
         }
     }
     case CONTROL_BOOL:
@@ -240,7 +241,14 @@ QVariant UiHelper::parseStringByType(const QString &defaultValue, const QString 
         bool bOk = false;
         float fVal = defaultValue.toFloat(&bOk);
         //TODO: need to check OK?
-        return fVal;
+        if (bOk)
+        {
+            return fVal;
+        } else if (defaultValue != "" && defaultValue[0] == '=') {
+            return defaultValue;
+        } else {
+            return QVariant("badValue");
+        }
     }
     case CONTROL_STRING:
     case CONTROL_WRITEPATH:
@@ -1137,7 +1145,9 @@ QVariant UiHelper::parseVarByType(const QString& descType, const QVariant& var, 
                 bool bOk = false;
                 float fVal = var.toString().toFloat(&bOk);
                 if (bOk)
-                    return QVariant(fVal);
+                return QVariant(fVal);
+                else if (var.toString() != "" && var.toString()[0] == '=')
+                return QVariant::fromValue(var);
             }
             default:
                 return QVariant();
@@ -1243,6 +1253,10 @@ QVariant UiHelper::parseJsonByType(const QString& descType, const rapidjson::Val
     auto jsonType = val.GetType();
     if (descType == "int")
     {
+        if (val.IsString() && val.GetStringLength()!= 0 && val.GetString()[0] == '=')
+        {
+            return val.GetString();
+        }
         bool bSucc = false;
         int iVal = parseJsonNumeric(val, true, bSucc);
         if (!bSucc)
@@ -1252,6 +1266,9 @@ QVariant UiHelper::parseJsonByType(const QString& descType, const rapidjson::Val
     else if (descType == "float" ||
              descType == "NumericObject")
     {
+        if (val.IsString() && val.GetStringLength() != 0 && val.GetString()[0] == '=') {
+            return val.GetString();
+        }
         bool bSucc = false;
         float fVal = parseJsonNumeric(val, true, bSucc);
         if (!bSucc)
@@ -1288,12 +1305,21 @@ QVariant UiHelper::parseJsonByType(const QString& descType, const rapidjson::Val
         {
             res = QVariant::fromValue(UI_VECTYPE(dim, 0));
             UI_VECTYPE vec;
+            UI_VECFORMULA vecFormula;
+            bool isFormula = false;
             if (val.IsArray())
             {
                 auto values = val.GetArray();
-                for (int i = 0; i < values.Size(); i++)
+                if (values.Size() != 0 && (values[0].IsFloat() || values[0].IsInt()))
                 {
-                    vec.append(values[i].GetFloat());
+                    for (int i = 0; i < values.Size(); i++) {
+                        vec.append(values[i].GetFloat());
+                    }
+                } else {
+                    isFormula = true;
+                    for (int i = 0; i < values.Size(); i++) {
+                        vecFormula.append(values[i].GetString());
+                    }
                 }
             }
             else if (val.IsString())
@@ -1314,7 +1340,7 @@ QVariant UiHelper::parseJsonByType(const QString& descType, const rapidjson::Val
                     }
                 }
             }
-            res = QVariant::fromValue(vec);
+            res = isFormula ? QVariant::fromValue(vecFormula) : QVariant::fromValue(vec);
         }
         else
         {

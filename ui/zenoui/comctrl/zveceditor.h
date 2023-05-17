@@ -13,6 +13,9 @@ public:
 	ZVecEditor(const UI_VECTYPE& vec, bool bFloat, int deflSize, QString styleCls, QWidget* parent = nullptr);
 	UI_VECTYPE vec() const;
 	bool isFloat() const;
+    bool containFormula();
+    UI_VECFORMULA vecString();
+    void setVecString(const UI_VECFORMULA &vec);
 
 signals:
 	void valueChanged(UI_VECTYPE);

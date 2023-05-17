@@ -113,20 +113,26 @@ namespace zenoui
                 pLineEdit->setSizePolicy(QSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed));
                 pLineEdit->setNumSlider(scene, UiHelper::getSlideStep("", ctrl));
 
-                if (ctrl == CONTROL_INT)
-                {
-                    pLineEdit->setValidator(new QIntValidator(pLineEdit));
-                }
-                else if (ctrl == CONTROL_FLOAT)
-                {
-                    pLineEdit->setValidator(new QDoubleValidator(pLineEdit));
-                }
+                //if (ctrl == CONTROL_INT)
+                //{
+                //    pLineEdit->setValidator(new QIntValidator(pLineEdit));
+                //}
+                //else if (ctrl == CONTROL_FLOAT)
+                //{
+                //    pLineEdit->setValidator(new QDoubleValidator(pLineEdit));
+                //}
 
                 QObject::connect(pLineEdit, &ZEditableTextItem::editingFinished, [=]() {
                     // be careful about the dynamic type.
                     const QString textVal = pLineEdit->toPlainText();
-                    const QVariant& newValue = UiHelper::parseStringByType(textVal, type);
-                    cbSet.cbEditFinished(newValue);
+                    const QVariant &newValue = UiHelper::parseStringByType(textVal, type);
+                    if (newValue.toString() == "badValue")
+                    {
+                        pLineEdit->setPlainText("0");
+                        cbSet.cbEditFinished(type == "int" ? QVariant(0) : QVariant(0.0));
+                    } else {
+                        cbSet.cbEditFinished(newValue);
+                    }
                 });
                 pItemWidget = pLineEdit;
 #endif
@@ -236,11 +242,22 @@ namespace zenoui
                 pVecEditor->setData(GVKEY_SIZEHINT, ZenoStyle::dpiScaledSize(QSizeF(0, zenoui::g_ctrlHeight)));
                 pVecEditor->setData(GVKEY_SIZEPOLICY, QSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed));
                 pVecEditor->setData(GVKEY_TYPE, type);
+                if (value.type() == QVariant::UserType && value.userType() == QMetaTypeId<UI_VECFORMULA>::qt_metatype_id())
+                {
+                    UI_VECFORMULA vec = value.value<UI_VECFORMULA>();
+                    pVecEditor->setVecString(vec);
+                }
 
                 QObject::connect(pVecEditor, &ZVecEditorItem::editingFinished, [=]() {
-                    UI_VECTYPE vec = pVecEditor->vec();
-                    const QVariant& newValue = QVariant::fromValue(vec);
-                    cbSet.cbEditFinished(newValue);
+                    if (pVecEditor->containFormula())
+                    {
+                        cbSet.cbEditFinished(QVariant::fromValue(pVecEditor->vecString()));
+                    }
+                    else {
+                        UI_VECTYPE vec = pVecEditor->vec();
+                        const QVariant& newValue = QVariant::fromValue(vec);
+                        cbSet.cbEditFinished(newValue);
+                    }
                 });
                 pItemWidget = pVecEditor;
                 break;

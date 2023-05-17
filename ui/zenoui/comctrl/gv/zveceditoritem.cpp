@@ -30,10 +30,10 @@ void ZVecEditorItem::initUI(const UI_VECTYPE& vec, bool bFloat, QGraphicsScene* 
         pLineEdit->setData(GVKEY_SIZEHINT, ZenoStyle::dpiScaledSize(QSizeF(64, 24)));
         pLineEdit->setData(GVKEY_SIZEPOLICY, QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed));
 
-        if (bFloat)
-            pLineEdit->setValidator(new QDoubleValidator);
-        else
-            pLineEdit->setValidator(new QIntValidator);
+        //if (bFloat)
+        //    pLineEdit->setValidator(new QDoubleValidator);
+        //else
+        //    pLineEdit->setValidator(new QIntValidator);
 
         pLineEdit->setNumSlider(pScene, UiHelper::getSlideStep("", bFloat ? CONTROL_FLOAT : CONTROL_INT));
         m_editors.append(pLineEdit);
@@ -86,4 +86,46 @@ void ZVecEditorItem::setVec(const UI_VECTYPE& vec)
 bool ZVecEditorItem::isFloatType() const
 {
     return m_bFloatVec;
+}
+
+bool ZVecEditorItem::containFormula()
+{
+    bool contains = false;
+    auto containChinese = [](QString s) {
+        for (QChar c : s) {
+            if (c > 127 || c < 0)
+                return true;
+        }
+        return false;
+    };
+    for (auto editor : m_editors) {
+        bool isFloat, isInt, hasChinese;
+        editor->text().toFloat(&isFloat);
+        editor->text().toInt(&isInt);
+        hasChinese = containChinese(editor->text());
+        if (editor->text() != "" && editor->text()[0] == '=' && !hasChinese) {
+            contains = true;
+            continue;
+        } else if (!isFloat && !isInt && editor->text()[0] != '=' || hasChinese) {
+            editor->setText("0");
+        }
+    }
+    return contains;
+}
+
+UI_VECFORMULA ZVecEditorItem::vecString() {
+    UI_VECFORMULA vec;
+    for (auto editor : m_editors)
+    {
+        vec.append(editor->text());
+    }
+    return vec;
+}
+
+void ZVecEditorItem::setVecString(const UI_VECFORMULA &vec) {
+    if (vec.size() != m_editors.size())
+        return;
+    for (int i = 0; i < vec.size(); i++) {
+        m_editors[i]->setText(vec[i]);
+    }
 }

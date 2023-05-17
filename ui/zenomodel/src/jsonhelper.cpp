@@ -177,6 +177,16 @@ namespace JsonHelper
                     }
                     writer.EndArray();
                 }
+            } else if (value.userType() == QMetaTypeId<UI_VECFORMULA>::qt_metatype_id())
+            {
+                UI_VECFORMULA vec = value.value<UI_VECFORMULA>();
+                if (!vec.isEmpty()) {
+                    writer.StartArray();
+                    for (int i = 0; i < vec.size(); i++) {
+                        writer.String(vec[i].toStdString().c_str());
+                    }
+                    writer.EndArray();
+                }
             }
             else if (value.userType() == QMetaTypeId<CURVES_DATA>::qt_metatype_id())
             {

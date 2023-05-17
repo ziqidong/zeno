@@ -14,6 +14,9 @@ public:
     void setVec(const UI_VECTYPE& vec, bool bFloat, QGraphicsScene* pScene);
     void setVec(const UI_VECTYPE& vec);
     bool isFloatType() const;
+    bool containFormula();
+    UI_VECFORMULA vecString();
+    void setVecString(const UI_VECFORMULA &vec);
 
 signals:
     void editingFinished();
@@ -24,6 +27,7 @@ private:
     QVector<ZEditableTextItem*> m_editors;
     LineEditParam m_param;
     bool m_bFloatVec;
+    bool m_bStringVec;
 };
 
 #endif

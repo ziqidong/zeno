@@ -127,7 +127,6 @@ void ZsgWriter::dumpSocket(SOCKET_INFO socket, bool bInput, RAPIDJSON_WRITER& wr
 {
     //new io format for socket.
     writer.StartObject();
-
     //property
     if (socket.sockProp != SOCKPROP_NORMAL)
     {
@@ -200,8 +199,12 @@ void ZsgWriter::dumpSocket(SOCKET_INFO socket, bool bInput, RAPIDJSON_WRITER& wr
     {
         writer.Key("default-value");
         QVariant deflVal = socket.defaultValue;
-
-        bool bValid = UiHelper::validateVariant(deflVal, sockType);
+        bool bValid;
+        if (QVariant::String == deflVal.type() && deflVal.toString()[0] == '=' || deflVal.type() == QVariant::UserType && deflVal.userType() == QMetaTypeId<UI_VECFORMULA>::qt_metatype_id()) {
+            bValid = true;
+        } else {
+            bValid = UiHelper::validateVariant(deflVal, sockType);
+        }
         if (!bValid)
             deflVal = QVariant();
         AddVariant(deflVal, sockType, writer, true);

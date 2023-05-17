@@ -45,7 +45,12 @@ namespace zenoui
                 QObject::connect(pLineEdit, &ZLineEdit::editingFinished, [=]() {
                     // be careful about the dynamic type.
                     const QVariant& newValue = UiHelper::parseStringByType(pLineEdit->text(), type);
-                    cbSet.cbEditFinished(newValue);
+                    if (newValue.toString() == "badValue") {
+                        pLineEdit->setText("0");
+                        cbSet.cbEditFinished(type == "int" ? QVariant(0) : QVariant(0.0));
+                    } else {
+                        cbSet.cbEditFinished(newValue);
+                    }
                     });
                 return pLineEdit;
             }
@@ -152,10 +157,18 @@ namespace zenoui
 
                 ZVecEditor* pVecEdit = new ZVecEditor(vec, bFloat, dim, "zeno2_2_lineedit");
                 pVecEdit->setFixedHeight(ZenoStyle::dpiScaled(zenoui::g_ctrlHeight));
+                if (value.type() == QVariant::UserType && value.userType() == QMetaTypeId<UI_VECFORMULA>::qt_metatype_id()) {
+                    UI_VECFORMULA vec = value.value<UI_VECFORMULA>();
+                    pVecEdit->setVecString(vec);
+                }
                 QObject::connect(pVecEdit, &ZVecEditor::editingFinished, [=]() {
-                    UI_VECTYPE vec = pVecEdit->vec();
-                    const QVariant& newValue = QVariant::fromValue(vec);
-                    cbSet.cbEditFinished(newValue);
+                    if (pVecEdit->containFormula()) {
+                        cbSet.cbEditFinished(QVariant::fromValue(pVecEdit->vecString()));
+                    } else {
+                        UI_VECTYPE vec = pVecEdit->vec();
+                        const QVariant &newValue = QVariant::fromValue(vec);
+                        cbSet.cbEditFinished(newValue);
+                    }
                 });
                 return pVecEdit;
             }

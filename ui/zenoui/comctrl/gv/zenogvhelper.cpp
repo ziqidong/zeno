@@ -98,9 +98,16 @@ void ZenoGvHelper::setValue(QGraphicsItem* item, PARAM_CONTROL ctrl, const QVari
             }
             else if (ZVecEditorItem* pEditor = qobject_cast<ZVecEditorItem*>(pItem))
             {
-                UI_VECTYPE vec = value.value<UI_VECTYPE>();
-                bool bFloat = (CONTROL_VEC4_FLOAT == ctrl || CONTROL_VEC3_FLOAT == ctrl || CONTROL_VEC2_FLOAT == ctrl);
-                pEditor->setVec(vec, bFloat, pScene);
+                if (value.userType() == QMetaTypeId<UI_VECTYPE>::qt_metatype_id())
+                {
+                    UI_VECTYPE vec = value.value<UI_VECTYPE>();
+                    bool bFloat = (CONTROL_VEC4_FLOAT == ctrl || CONTROL_VEC3_FLOAT == ctrl || CONTROL_VEC2_FLOAT == ctrl);
+                    pEditor->setVec(vec, bFloat, pScene);
+                }
+                else if (value.userType() == QMetaTypeId<UI_VECFORMULA>::qt_metatype_id())
+                {
+                    pEditor->setVecString(value.value<UI_VECFORMULA>());
+                }
             }
             else if (ZenoParamComboBox* pBtn = qobject_cast<ZenoParamComboBox*>(pItem))
             {
@@ -128,7 +135,13 @@ void ZenoGvHelper::setValue(QGraphicsItem* item, PARAM_CONTROL ctrl, const QVari
         {
             QGraphicsTextItem* pItem = qgraphicsitem_cast<QGraphicsTextItem*>(item);
             if (ctrl == CONTROL_FLOAT)
-                pItem->setPlainText(QString::number(value.toFloat()));
+                if (value.toString()[0] == '=')
+                {
+                    pItem->setPlainText(value.toString());
+                }
+                else {
+                    pItem->setPlainText(QString::number(value.toFloat()));
+                }
             else
                 pItem->setPlainText(value.toString());
             break;

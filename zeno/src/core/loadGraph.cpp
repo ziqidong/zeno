@@ -112,7 +112,11 @@ ZENO_API void Graph::loadGraph(const char *json) {
                 this->endFrameNumber = di[1].GetInt();
             } else if (cmd == "setNodeOption") {
                 // skip this for compatibility
-            } else {
+            } else if (cmd == "addFormula")
+            {
+                g->setNodeInputFormula(di[1].GetString(), di[2].GetString(), di[3]);
+            }
+            else {
                 log_warn("got unexpected command: {}", cmd);
             }
         }, maybeNodeName);

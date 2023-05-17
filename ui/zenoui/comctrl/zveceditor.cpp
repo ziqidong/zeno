@@ -44,6 +44,47 @@ bool ZVecEditor::isFloat() const
     return m_bFloat;
 }
 
+bool ZVecEditor::containFormula() {
+    bool contains = false;
+    auto containChinese = [](QString s) {
+        for (QChar c : s) {
+            if (c > 127 || c < 0)
+                return true;
+        }
+        return false;
+    };
+    for (auto editor : m_editors) {
+        bool isFloat, isInt, hasChinese;
+        editor->text().toFloat(&isFloat);
+        editor->text().toInt(&isInt);
+        hasChinese = containChinese(editor->text());
+        if (editor->text() != "" && editor->text()[0] == '=' && !hasChinese) {
+            contains = true;
+            continue;
+        } else if (!isFloat && !isInt && editor->text()[0] != '=' || hasChinese) {
+            editor->setText("0");
+        }
+    }
+    return contains;
+}
+
+
+UI_VECFORMULA ZVecEditor::vecString() {
+    UI_VECFORMULA vec;
+    for (auto editor : m_editors) {
+        vec.append(editor->text());
+    }
+    return vec;
+}
+
+void ZVecEditor::setVecString(const UI_VECFORMULA &vec) {
+    if (vec.size() != m_editors.size())
+        return;
+    for (int i = 0; i < vec.size(); i++) {
+        m_editors[i]->setText(vec[i]);
+    }
+}
+
 UI_VECTYPE ZVecEditor::vec() const
 {
 	UI_VECTYPE v;

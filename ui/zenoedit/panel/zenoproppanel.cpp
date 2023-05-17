@@ -597,7 +597,11 @@ void ZenoPropPanel::onViewParamDataChanged(const QModelIndex& topLeft, const QMo
                 PARAM_CONTROL paramCtrl = (PARAM_CONTROL)param->data(ROLE_PARAM_CTRL).toInt();
                 QString literalNum;
                 if (paramCtrl == CONTROL_FLOAT)
-                    literalNum = QString::number(value.toFloat());
+                    if (value.toString()[0] == '=') {
+                        literalNum = value.toString();
+                    } else {
+                        literalNum = QString::number(value.toFloat());
+                    }
                 else
                     literalNum = value.toString();
                 pLineEdit->setText(literalNum);
@@ -612,7 +616,13 @@ void ZenoPropPanel::onViewParamDataChanged(const QModelIndex& topLeft, const QMo
             }
             else if (ZVecEditor* pVecEdit = qobject_cast<ZVecEditor*>(ctrl.pControl))
             {
-                pVecEdit->setVec(value.value<UI_VECTYPE>(), pVecEdit->isFloat());
+                if (value.type() == QVariant::UserType && value.userType() == QMetaTypeId<UI_VECTYPE>::qt_metatype_id())
+                {
+                    pVecEdit->setVec(value.value<UI_VECTYPE>(), pVecEdit->isFloat());
+                }else if (value.type() == QVariant::UserType && value.userType() == QMetaTypeId<UI_VECFORMULA>::qt_metatype_id())
+                {
+                    pVecEdit->setVecString(value.value<UI_VECFORMULA>());
+                }
             }
             else if (QCheckBox* pCheckbox = qobject_cast<QCheckBox*>(ctrl.pControl))
             {

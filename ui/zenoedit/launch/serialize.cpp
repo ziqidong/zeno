@@ -197,7 +197,20 @@ static void serializeGraph(IGraphsModel* pGraphsModel, const QModelIndex& subgId
                 const QString& sockType = inSockIdx.data(ROLE_PARAM_TYPE).toString();
                 defl = UiHelper::parseVarByType(sockType, defl, nullptr);
                 if (!defl.isNull())
-                    AddParams("setNodeInput", ident, inputName, defl, sockType, writer);
+                    if (defl.userType() == QVariant::String && defl.toString()[0] == '=')  //support parsing string into expressions
+                    {
+                        AddParams("addFormula", ident, inputName, QVariant(defl.toString().split("=")[1]), "string", writer);
+                    } else if (defl.userType() == QMetaTypeId<UI_VECFORMULA>::qt_metatype_id())
+                    {
+                        UI_VECFORMULA vec = defl.value<UI_VECFORMULA>();
+                        for (int i = 0; i < vec.size(); i++) {
+                            vec[i] = vec[i][0] == '=' ? vec[i].split("=")[1] : vec[i];
+                        }
+                        AddParams("addFormula", ident, inputName, QVariant::fromValue(vec), sockType, writer);  //support parsing QVector<QString> into expressions
+                    }
+                    else {
+                        AddParams("setNodeInput", ident, inputName, defl, sockType, writer);
+                    }
             }
             else
             {
@@ -222,7 +235,19 @@ static void serializeGraph(IGraphsModel* pGraphsModel, const QModelIndex& subgId
             QVariant paramValue = UiHelper::parseVarByType(param_info.typeDesc, param_info.value, nullptr);
             if (paramValue.isNull())
                 continue;
-            AddParams("setNodeParam", ident, param_info.name, paramValue, param_info.typeDesc, writer);
+            if (paramValue.userType() == QVariant::String && paramValue.toString()[0] == '=')
+            {
+                AddParams("addFormula", ident, param_info.name, QVariant(paramValue.toString().split("=")[1]), "string", writer);
+            } else if (paramValue.userType() == QMetaTypeId<UI_VECFORMULA>::qt_metatype_id())
+            {
+                UI_VECFORMULA vec = paramValue.value<UI_VECFORMULA>();
+                for (int i = 0; i < vec.size(); i++) {
+                    vec[i] = vec[i][0] == '=' ? vec[i].split("=")[1] : vec[i];
+                }
+                AddParams("addFormula", ident, param_info.name, QVariant::fromValue(vec), param_info.typeDesc, writer);
+            } else {
+                AddParams("setNodeParam", ident, param_info.name, paramValue, param_info.typeDesc, writer);
+            }
 		}
 
         if (opts & OPT_ONCE) {

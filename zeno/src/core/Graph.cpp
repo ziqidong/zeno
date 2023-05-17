@@ -134,6 +134,47 @@ ZENO_API void Graph::addNodeOutput(std::string const& id, std::string const& par
     safe_at(nodes, id, "node name")->outputs[par] = nullptr;
 }
 
+ZENO_API void Graph::setNodeInputFormula(std::string const &id, std::string const &par, Value const &val) {
+    auto callTmpNode = [&](std::string value) {
+        std::shared_ptr<IObject> iobj = callTempNode("NumericEval", {{"zfxCode", objectFromLiterial(value)},
+                                         {"resType", objectFromLiterial("float")}})["result"];
+        std::shared_ptr<NumericObject> res = std::dynamic_pointer_cast<NumericObject>(iobj);
+        return res;
+    };
+    if (val.IsArray())
+    {
+        auto a = val.GetArray();
+        if (a.Size() == 2)
+        {
+            float res[2];
+            for (int i = 0; i < a.Size(); i++) {
+                res[i] = objectToLiterial<float>(callTmpNode(a[i].GetString()));
+            }
+            setNodeInput(id, par, objectFromLiterial(vec2f(res[0], res[1])));
+        }else if (a.Size() == 3)
+        {
+            float res[3];
+            for (int i = 0; i < a.Size(); i++) {
+                res[i] = objectToLiterial<float>(callTmpNode(a[i].GetString()));
+            }
+            setNodeInput(id, par, objectFromLiterial(vec3f(res[0], res[1], res[2])));
+        }else if (a.Size() == 4)
+        {
+            float res[4];
+            for (int i = 0; i < a.Size(); i++) {
+                res[i] = objectToLiterial<float>(callTmpNode(a[i].GetString()));
+            }
+            setNodeInput(id, par, objectFromLiterial(vec4f(res[0], res[1], res[2], res[3])));
+        }
+    }
+    else if (val.IsString())
+    {
+        zany res = callTempNode("NumericEval", {{"zfxCode", objectFromLiterial(val.GetString())},
+                                                {"resType", objectFromLiterial("float")}})["result"];
+        setNodeInput(id, par, res);
+    }
+}
+
 ZENO_API void Graph::setNodeParam(std::string const &id, std::string const &par,
     std::variant<int, float, std::string, zany> const &val) {
     auto parid = par + ":";

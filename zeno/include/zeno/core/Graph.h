@@ -4,6 +4,7 @@
 #include <zeno/core/IObject.h>
 #include <zeno/utils/safe_dynamic_cast.h>
 #include <zeno/types/UserData.h>
+#include <rapidjson/document.h>
 #include <functional>
 #include <variant>
 #include <memory>
@@ -13,6 +14,8 @@
 #include <map>
 
 namespace zeno {
+
+using namespace rapidjson;
 
 struct Session;
 struct SubgraphNode;
@@ -66,6 +69,7 @@ struct Graph : std::enable_shared_from_this<Graph> {
     ZENO_API void setNodeInput(std::string const &id, std::string const &par,
         zany const &val);
     ZENO_API void addNodeOutput(std::string const &id, std::string const &par);
+    ZENO_API void setNodeInputFormula(std::string const &id, std::string const &par, Value const &val);
     ZENO_API zany const &getNodeOutput(std::string const &sn, std::string const &ss) const;
     ZENO_API void loadGraph(const char *json);
     ZENO_API void setNodeParam(std::string const &id, std::string const &par,
