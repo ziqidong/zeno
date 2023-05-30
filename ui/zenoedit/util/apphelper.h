@@ -19,8 +19,9 @@ public:
     static INPUT_SOCKET getInputSocket(const QPersistentModelIndex& index, const QString& inSock, bool& exist);
     static void ensureSRCDSTlastKey(INPUT_SOCKETS& inputs, OUTPUT_SOCKETS& outputs);
     static QString nativeWindowTitle(const QString& currentFilePath);
-    static void socketEditFinished(QVariant newValue, QPersistentModelIndex nodeIdx, QPersistentModelIndex paramIdx);
-    static void modifyLightData(QPersistentModelIndex nodeIdx);
+    static void socketEditFinished(QVariant newValue, QPersistentModelIndex m_subGpIndex, QPersistentModelIndex nodeIdx, QPersistentModelIndex paramIdx);
+    static void modifyLightData(QPersistentModelIndex nodeIdx, QModelIndex idx);
+    static QVector<QModelIndex> getToViewLightsIdx(QPersistentModelIndex m_subGpIndex, QPersistentModelIndex nodeIdx);
 };
 
 

@@ -939,7 +939,7 @@ QGraphicsItem* ZenoNode::initSocketWidget(ZenoSubGraphScene* scene, const QModel
     const QPersistentModelIndex perIdx(paramIdx);
 
     auto cbUpdateSocketDefl = [=](QVariant newValue) {
-        AppHelper::socketEditFinished(newValue, m_index, perIdx);
+        AppHelper::socketEditFinished(newValue, m_subGpIndex, m_index, perIdx);
     };
 
     auto cbSwith = [=](bool bOn) {

@@ -7,7 +7,8 @@
 #include "../startup/zstartup.h"
 #include "variantptr.h"
 #include "viewport/displaywidget.h"
-
+#include "viewport/optixviewport.h"
+#include <zenomodel/include/nodeparammodel.h>
 
 QModelIndexList AppHelper::getSubInOutNode(IGraphsModel* pModel, const QModelIndex& subgIdx, const QString& sockName, bool bInput)
 {
@@ -111,35 +112,39 @@ QString AppHelper::nativeWindowTitle(const QString& currentFilePath)
     }
 }
 
-void AppHelper::socketEditFinished(QVariant newValue, QPersistentModelIndex nodeIdx, QPersistentModelIndex paramIdx) {
+void AppHelper::socketEditFinished(QVariant newValue, QPersistentModelIndex m_subGpIndex, QPersistentModelIndex nodeIdx, QPersistentModelIndex paramIdx) {
+    QSet<QString> changeLightNodes{"LightNode"};
     IGraphsModel *pModel = zenoApp->graphsManagment()->currentModel();
     ZenoMainWindow *main = zenoApp->getMainWindow();
     if (!pModel || !main)
         return;
-    if (nodeIdx.data(ROLE_OBJNAME).toString() == "LightNode" &&
-        nodeIdx.data(ROLE_OPTIONS).toInt() == OPT_VIEW &&
+    if (changeLightNodes.contains(nodeIdx.data(ROLE_OBJNAME).toString()) &&
         (main->isAlways() || main->isAlwaysLightCamera()))
     {
         //only update nodes.
-        zeno::scope_exit sp([=] { pModel->setApiRunningEnable(true);});
+        //zeno::scope_exit sp([=] { pModel->setApiRunningEnable(true);});
         pModel->setApiRunningEnable(false);
 
-        QAbstractItemModel *paramsModel = const_cast<QAbstractItemModel *>(paramIdx.model());
-        ZASSERT_EXIT(paramsModel);
-        paramsModel->setData(paramIdx, newValue, ROLE_PARAM_VALUE);
-        modifyLightData(nodeIdx);
+        int ret = pModel->ModelSetData(paramIdx, newValue, ROLE_PARAM_VALUE);
+        for (QModelIndex idx : getToViewLightsIdx(m_subGpIndex, nodeIdx))
+        {
+            if (idx.data(ROLE_OPTIONS).toInt() & OPT_VIEW)
+            {
+                modifyLightData(nodeIdx, idx);
+            }
+        }
     } else {
         int ret = pModel->ModelSetData(paramIdx, newValue, ROLE_PARAM_VALUE);
     }
 }
 
-void AppHelper::modifyLightData(QPersistentModelIndex nodeIdx) {
+void AppHelper::modifyLightData(QPersistentModelIndex nodeIdx, QModelIndex idx) {
     QStandardItemModel *viewParams = QVariantPtr<QStandardItemModel>::asPtr(nodeIdx.data(ROLE_NODE_PARAMS));
     ZASSERT_EXIT(viewParams);
     QStandardItem *inv_root = viewParams->invisibleRootItem();
     ZASSERT_EXIT(inv_root);
     QStandardItem *inputsItem = inv_root->child(0);
-    std::string name = nodeIdx.data(ROLE_OBJID).toString().toStdString();
+    std::string name = idx.data(ROLE_OBJID).toString().toStdString();
     const UI_VECTYPE posVec = inputsItem->child(0)->index().data(ROLE_PARAM_VALUE).value<UI_VECTYPE>();
     const UI_VECTYPE scaleVec = inputsItem->child(1)->index().data(ROLE_PARAM_VALUE).value<UI_VECTYPE>();
     const UI_VECTYPE rotateVec = inputsItem->child(2)->index().data(ROLE_PARAM_VALUE).value<UI_VECTYPE>();
@@ -166,45 +171,93 @@ void AppHelper::modifyLightData(QPersistentModelIndex nodeIdx) {
     ZenoMainWindow *pWin = zenoApp->getMainWindow();
     ZASSERT_EXIT(pWin);
 
-    QVector<DisplayWidget *> views = pWin->viewports();
-    for (auto pDisplay : views)
-    {
-        Zenovis* pZenovis = pDisplay->getZenoVis();
-        ZASSERT_EXIT(pZenovis);
+    ZOptixViewport* views = pWin->getOptixWidget()->optixViewport();
+    Zenovis* pZenovis = views->getZenoVis();
+    ZASSERT_EXIT(pZenovis);
 
-        auto scene = pZenovis->getSession()->get_scene();
-        ZASSERT_EXIT(scene);
+    auto scene = pZenovis->getSession()->get_scene();
+    ZASSERT_EXIT(scene);
 
-        std::shared_ptr<zeno::IObject> obj;
-        for (auto const &[key, ptr] : scene->objectsMan->lightObjects) {
-            if (key.find(name) != std::string::npos) {
-                obj = ptr;
-                name = key;
-            }
-        }
-        auto prim_in = dynamic_cast<zeno::PrimitiveObject *>(obj.get());
-
-        if (prim_in) {
-            auto &prim_verts = prim_in->verts;
-            prim_verts[0] = verts[0];
-            prim_verts[1] = verts[1];
-            prim_verts[2] = verts[2];
-            prim_verts[3] = verts[3];
-            prim_in->verts.attr<zeno::vec3f>("clr")[0] = zeno::vec3f(r, g, b) * intensity;
-
-            prim_in->userData().setLiterial<zeno::vec3f>("pos", zeno::vec3f(posX, posY, posZ));
-            prim_in->userData().setLiterial<zeno::vec3f>("scale", zeno::vec3f(scaleX, scaleY, scaleZ));
-            prim_in->userData().setLiterial<zeno::vec3f>("rotate", zeno::vec3f(rotateX, rotateY, rotateZ));
-            if (prim_in->userData().has("intensity")) {
-                prim_in->userData().setLiterial<zeno::vec3f>("color", zeno::vec3f(r, g, b));
-                prim_in->userData().setLiterial<float>("intensity", std::move(intensity));
-            }
-
-            scene->objectsMan->needUpdateLight = true;
-            pDisplay->setSimpleRenderOption();
-            zenoApp->getMainWindow()->updateViewport();
-        } else {
-            zeno::log_info("modifyLightData not found {}", name);
+    std::shared_ptr<zeno::IObject> obj;
+    for (auto const &[key, ptr] : scene->objectsMan->lightObjects) {
+        if (key.find(name) != std::string::npos) {
+            obj = ptr;
+            name = key;
         }
     }
+    auto prim_in = dynamic_cast<zeno::PrimitiveObject *>(obj.get());
+
+    if (prim_in) {
+        auto &prim_verts = prim_in->verts;
+        prim_verts[0] = verts[0];
+        prim_verts[1] = verts[1];
+        prim_verts[2] = verts[2];
+        prim_verts[3] = verts[3];
+        prim_in->verts.attr<zeno::vec3f>("clr")[0] = zeno::vec3f(r, g, b) * intensity;
+
+        prim_in->userData().setLiterial<zeno::vec3f>("pos", zeno::vec3f(posX, posY, posZ));
+        prim_in->userData().setLiterial<zeno::vec3f>("scale", zeno::vec3f(scaleX, scaleY, scaleZ));
+        prim_in->userData().setLiterial<zeno::vec3f>("rotate", zeno::vec3f(rotateX, rotateY, rotateZ));
+        if (prim_in->userData().has("intensity")) {
+            prim_in->userData().setLiterial<zeno::vec3f>("color", zeno::vec3f(r, g, b));
+            prim_in->userData().setLiterial<float>("intensity", std::move(intensity));
+        }
+
+        scene->objectsMan->needUpdateLight = true;
+        views->setSimpleRenderOption();
+        zenoApp->getMainWindow()->updateViewport();
+    } else {
+        zeno::log_info("modifyLightData not found {}", name);
+    }
 }
+
+QVector<QModelIndex> AppHelper::getToViewLightsIdx(QPersistentModelIndex m_subGpIndex, QPersistentModelIndex nodeIdx) {
+    ZenoMainWindow *pWin = zenoApp->getMainWindow();
+    if (!pWin)
+    {
+        return QVector<QModelIndex>();
+    }
+    DisplayWidget* dw = pWin->getOptixWidget();
+	if (!dw)
+	{
+		return QVector<QModelIndex>();
+	}
+	ZOptixViewport* pViewport = dw->optixViewport();
+    if (!pViewport)
+    {
+		return QVector<QModelIndex>();
+    }
+    auto scene = pViewport->getZenoVis()->getSession()->get_scene();
+    if (!scene)
+    {
+        return QVector<QModelIndex>();
+    }
+    QSet<QString> set;
+    std::shared_ptr<zeno::IObject> obj;
+    for (auto const &[key, ptr] : scene->objectsMan->lightObjects) {
+        if (ptr->userData().get2<int>("isL", 0)) {
+            set.insert(QString::fromStdString(key.substr(0, key.find(":"))));
+        }
+    }
+    QVector<QModelIndex> lights;
+    QQueue<QModelIndex> queue;
+    queue.enqueue(nodeIdx);
+    while (!queue.empty()) {
+        QModelIndex nodeIdx = queue.dequeue();
+        if (set.contains(nodeIdx.data(ROLE_OBJID).toString())) {
+            lights.push_back(nodeIdx);
+        }
+        NodeParamModel *params = QVariantPtr<NodeParamModel>::asPtr(nodeIdx.data(ROLE_NODE_PARAMS));
+        const QModelIndexList &lst = params->getOutputIndice();
+        for (int i = 0; i < lst.size(); i++) {
+            const QModelIndex &paramIdx = lst[i];
+            PARAM_LINKS links = paramIdx.data(ROLE_PARAM_LINKS).value<PARAM_LINKS>();
+            for (const QPersistentModelIndex &id : links) {
+                const QString &inId = id.data(ROLE_INNODE).toString();
+                QModelIndex inNode = zenoApp->graphsManagment()->currentModel()->index(inId, m_subGpIndex);
+                queue.enqueue(inNode);
+            }
+        }
+    }
+    return lights;
+ }
