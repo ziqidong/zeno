@@ -46,9 +46,11 @@ public:
     void bindNodeToPicker(const QModelIndex& node, const QModelIndex& subgraph, const std::string& sock_name);
     void unbindNodeFromPicker();
     void setSimpleRenderOption();
+    void setCurrentCamera(QString camName);
 
 signals:
     void frameRecorded(int);
+    void cameraListUpdated(QVariant);
 
 protected:
     void mousePressEvent(QMouseEvent* event) override;
@@ -72,6 +74,7 @@ private:
 public:
     int simpleRenderTime;
     bool updateLightOnce;
+    bool updateCameraListOnce;
     bool m_bMovingCamera;
 };
 

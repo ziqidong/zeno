@@ -169,6 +169,10 @@ void AppHelper::modifyLightData(QPersistentModelIndex nodeIdx) {
     QVector<DisplayWidget *> views = pWin->viewports();
     for (auto pDisplay : views)
     {
+        if (pDisplay->isGLViewport())
+        {
+            continue;
+        }
         Zenovis* pZenovis = pDisplay->getZenoVis();
         ZASSERT_EXIT(pZenovis);
 

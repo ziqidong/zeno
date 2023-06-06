@@ -605,6 +605,7 @@ DockContent_View::DockContent_View(bool bGLView, QWidget* parent)
     : DockToolbarWidget(parent)
     , m_pDisplay(nullptr)
     , m_cbRenderWay(nullptr)
+    , m_cbCameraList(nullptr)
     , m_smooth_shading(nullptr)
     , m_normal_check(nullptr)
     , m_wire_frame(nullptr)
@@ -736,6 +737,20 @@ void DockContent_View::initToolbar(QHBoxLayout* pToolLayout)
     m_cbRenderWay->view()->setFixedWidth(ZenoStyle::dpiScaled(110));
     m_cbRenderWay->setFixedSize(fontMetrics.horizontalAdvance(items[0]) + ZenoStyle::dpiScaled(28), ZenoStyle::dpiScaled(20));
 
+    QStringList camItems = {tr("none")};
+    m_curCamName = tr("none");
+    Callback_EditFinished funcSetCam = [=](QVariant newValue) {
+        m_curCamName = newValue.toString();
+        m_pDisplay->setCam(m_curCamName == tr("none") ? "none" : m_curCamName);
+        m_pDisplay->updateFrame();
+    };
+    cbSet.cbEditFinished = funcSetCam;
+    m_cbCameraList = qobject_cast<QComboBox *>(zenoui::createWidget("100%", CONTROL_ENUM, "string", cbSet, camItems));
+    m_cbCameraList->setProperty("focusBorder", "none");
+    m_cbCameraList->setEditable(false);
+    m_cbCameraList->view()->setFixedWidth(ZenoStyle::dpiScaled(260));
+    m_cbCameraList->setFixedSize(fontMetrics.horizontalAdvance(items[0]) + ZenoStyle::dpiScaled(28), ZenoStyle::dpiScaled(20));
+
     pToolLayout->addWidget(pMenuBar);
     pToolLayout->setAlignment(pMenuBar, Qt::AlignVCenter);
     pToolLayout->addStretch(1);
@@ -757,6 +772,7 @@ void DockContent_View::initToolbar(QHBoxLayout* pToolLayout)
     pToolLayout->addWidget(m_recordVideo);
     pToolLayout->addWidget(m_resizeViewport);
 
+    pToolLayout->addWidget(m_cbCameraList);
     pToolLayout->addStretch(7);
 
     pToolLayout->addWidget(m_cbRenderWay);
@@ -808,6 +824,25 @@ void DockContent_View::initConnections()
 
     connect(m_screenshoot, &ZToolBarButton::clicked, this, [=]() {
         m_pDisplay->onCommandDispatched(ZenoMainWindow::ACTION_SCREEN_SHOOT, true);
+    });
+
+    connect(m_pDisplay, &DisplayWidget::cameraListUpdated, this, [=](QVariant list) {
+        m_cbCameraList->clear();
+        m_cbCameraList->addItem(tr("none"));
+        bool hasCurrentCam = false;
+        for (auto i : list.value<QVector<QString>>()) {
+            if (i.split(":")[0] == m_curCamName.split(":")[0]) {
+                m_curCamName = i;
+                hasCurrentCam = true;
+            }
+            m_cbCameraList->addItem(i);
+        }
+        if (hasCurrentCam) {
+            m_cbCameraList->setCurrentText(m_curCamName);
+        } else {
+            m_curCamName = tr("none");
+        }
+        m_pDisplay->setCam(m_curCamName);
     });
 
     connect(m_resizeViewport, &ZToolBarButton::clicked, this, [=]() {

@@ -38,6 +38,7 @@ public:
     void killOptix();
     void setIsCurrent(bool isCurrent);
     bool isCurrent();
+    void setCam(QString camName);
 protected:
     void mouseReleaseEvent(QMouseEvent* event) override;
 
@@ -57,6 +58,7 @@ public slots:
 signals:
     void frameUpdated(int new_frame);
     void frameRunFinished(int frame);
+    void cameraListUpdated(QVariant);
 
 private:
     bool isOptxRendering() const;

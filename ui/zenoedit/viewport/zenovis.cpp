@@ -8,7 +8,8 @@
 #include <zeno/extra/GlobalComm.h>
 #include <zeno/utils/logger.h>
 #include <zeno/zeno.h>
-
+#include <zenovis/ObjectsManager.h>
+#include <zenovis/RenderEngine.h>
 
 Zenovis::Zenovis(QObject *parent)
     : QObject(parent)
@@ -19,6 +20,7 @@ Zenovis::Zenovis(QObject *parent)
     , m_cache_frames(10)
     , m_playing(false)
     , m_camera_keyframe(nullptr)
+    , m_currentCameraName("none")
 {
 }
 
@@ -70,6 +72,10 @@ void Zenovis::updateCameraFront(QVector3D center, QVector3D front, QVector3D up)
                              front.x(), front.y(), front.z(),
                              up.x(), up.y(), up.z());
     }
+}
+
+void Zenovis::setCurrentCamera(QString camName) {
+    m_currentCameraName = camName;
 }
 
 void Zenovis::startPlay(bool bPlaying)
@@ -151,6 +157,24 @@ void Zenovis::doFrameUpdate()
     if (inserted) {
         emit objectsUpdated(frameid);
     }
+
+    if (m_currentCameraName != "none")
+    {
+        auto scene = session->get_scene();
+        scene->renderMan->getEngine()->skipCameraObj(false);
+        for (auto const &[key, ptr] : scene->objectsMan->pairs()) {
+            if (key.substr(0, key.find(":")) == m_currentCameraName.toStdString()) {
+                auto cam = dynamic_cast<zeno::CameraObject *>(ptr)->get();
+                scene->camera->setCamera(cam);
+            }
+        }
+    }
+    else {
+        auto scene = session->get_scene();
+        scene->renderMan->getEngine()->skipCameraObj(true);
+        //scene->camera->m_need_sync = false;
+    }
+
     if (m_playing)
         setCurrentFrameId(frameid + 1);
 }

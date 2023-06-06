@@ -66,6 +66,10 @@ struct RenderEngineBate : RenderEngine {
             scene->drawOptions->handler->draw();
         }
     }
+
+    void skipCameraObj(bool skip) override{
+        graphicsMan->skipCamera = skip;
+    }
 };
 
 static auto definer = RenderManager::registerRenderEngine<RenderEngineBate>("bate");

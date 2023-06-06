@@ -15,6 +15,7 @@ struct Scene;
 struct RenderEngine {
     virtual void draw() = 0;
     virtual void update() = 0;
+    virtual void skipCameraObj(bool skip){};
 
     virtual ~RenderEngine() = default;
 };
