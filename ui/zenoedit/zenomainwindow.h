@@ -67,6 +67,7 @@ public:
     ZenoGraphsEditor* getAnyEditor() const;
     void dispatchCommand(QAction* pAction, bool bTriggered);
     std::shared_ptr<ZCacheMgr> cacheMgr() const;
+    int currTimelineFrame();
 
     void doFrameUpdate(int frame);
     void sortRecentFile(QStringList &lst);

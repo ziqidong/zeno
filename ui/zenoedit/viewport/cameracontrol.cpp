@@ -429,6 +429,22 @@ void CameraControl::fakeMouseReleaseEvent(QMouseEvent *event) {
                 // create/modify transform primitive node
                 moved = true;
             }
+            connect(m_zenovis, &Zenovis::objectsUpdated, this, [=]() {
+                std::vector<std::string>& newObjIds = m_transformer->updateObjects();
+                if (newObjIds.size() > 0)
+                {
+                    for (auto newObjId : newObjIds)
+                    {
+                        m_picker->add(newObjId);
+                    }
+                    m_picker->sync_to_scene();
+                    if (scene->select_mode == zenovis::PICK_OBJECT) {
+                        ZenoMainWindow* mainWin = zenoApp->getMainWindow();
+                        ZASSERT_EXIT(mainWin);
+                        mainWin->onPrimitiveSelected(scene->selected);
+                    }
+                }
+            });
             m_transformer->endTransform(moved);
         } else {
             auto cam_pos = realPos();

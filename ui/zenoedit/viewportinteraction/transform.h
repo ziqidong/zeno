@@ -46,6 +46,8 @@ public:
     void setTransOpt(int opt);
     bool isTransformMode() const;
     glm::vec3 getCenter() const;
+    std::vector<std::string> updateObjects();
+
     void clear();
 
 private:
@@ -120,6 +122,10 @@ private:
     float m_handler_scale;
     std::shared_ptr<zenovis::IGraphicHandler> m_handler;
     ViewportWidget* m_viewport;
+
+    std::vector<std::string> m_last_objectsName;
+    glm::vec3 m_last_objects_center;
+    int m_last_operation;
 };
 
 }

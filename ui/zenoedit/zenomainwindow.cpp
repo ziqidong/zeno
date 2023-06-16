@@ -1155,6 +1155,11 @@ std::shared_ptr<ZCacheMgr> ZenoMainWindow::cacheMgr() const
     return m_spCacheMgr;
 }
 
+int ZenoMainWindow::currTimelineFrame()
+{
+    return m_pTimeline->value();
+}
+
 void ZenoMainWindow::killOptix()
 {
     DisplayWidget* pWid = this->getOptixWidget();

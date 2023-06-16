@@ -9,6 +9,7 @@
 #include "viewport/viewportwidget.h"
 #include <glm/gtx/transform.hpp>
 #include <glm/gtx/quaternion.hpp>
+#include "launch/corelaunch.h"
 
 namespace zeno {
 
@@ -454,6 +455,21 @@ void FakeTransformer::endTransform(bool moved) {
 
     m_operation_mode = zenovis::INTERACT_NONE;
     m_handler->setMode(zenovis::INTERACT_NONE);
+
+    ZenoMainWindow* main = zenoApp->getMainWindow();
+    ZASSERT_EXIT(main);
+    if (moved && main->isAlways())
+    {
+        std::shared_ptr<ZCacheMgr> mgr = zenoApp->getMainWindow()->cacheMgr();
+        ZASSERT_EXIT(mgr);
+        mgr->setCacheOpt(ZCacheMgr::Opt_AlwaysOnLightCameraMaterial);
+
+        for (auto const& [key, obj] : m_objects)
+            m_last_objectsName.push_back(key.substr(0, key.find(":")));
+        m_last_objects_center = m_objects_center;
+        m_last_operation = m_operation;
+        emit zenoApp->graphsManagment()->modelDataChanged();
+    }
 }
 
 void FakeTransformer::toTranslate() {
@@ -607,6 +623,54 @@ bool FakeTransformer::isTransformMode() const {
 
 glm::vec3 FakeTransformer::getCenter() const {
     return m_objects_center;
+}
+
+std::vector<std::string> FakeTransformer::updateObjects()
+{
+    if (m_last_objectsName.size() == 0)
+    {
+        return std::vector<std::string>();
+    }
+    auto pZenovis = m_viewport->getZenoVis();
+    ZASSERT_EXIT(pZenovis, std::vector<std::string>());
+    auto sess = pZenovis->getSession();
+    ZASSERT_EXIT(sess, std::vector<std::string>());
+    auto scene = sess->get_scene();
+    ZASSERT_EXIT(scene, std::vector<std::string>());
+    std::vector<std::string> newPrimObjsId;
+    for (auto id : m_last_objectsName)
+    {
+        auto& node_sync = NodeSyncMgr::GetInstance();
+        auto prim_node_location = node_sync.searchNodeOfPrim(id);
+        auto& prim_node = prim_node_location->node;
+        auto linked_transform_node = node_sync.checkNodeLinkedSpecificNode(prim_node, "TransformPrimitive");
+        std::string objId = id;
+        if (linked_transform_node.has_value())
+            objId = linked_transform_node.value().node.data(ROLE_OBJID).toString().toStdString();
+        for (auto const& [key, ptr] : scene->objectsMan->objects) {
+            if (key.find(objId) != std::string::npos) {
+                newPrimObjsId.push_back(key);
+                addObject(key);
+            }
+        }
+    }
+    m_objects_center = m_last_objects_center;
+    switch (m_last_operation)
+    {
+    case TRANSLATE:
+        toTranslate();
+        break;
+    case ROTATE:
+        toRotate();
+        break;
+    case SCALE:
+        toScale();
+        break;
+    case NONE:
+        break;
+    };
+    m_last_objectsName.clear();
+    return newPrimObjsId;
 }
 
 void FakeTransformer::clear() {
