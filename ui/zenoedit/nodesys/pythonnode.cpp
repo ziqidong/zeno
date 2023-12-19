@@ -1,4 +1,4 @@
-#include <Python.h>
+//#include <Python.h>
 #include "pythonnode.h"
 
 
@@ -34,9 +34,11 @@ ZGraphicsLayout* PythonNode::initCustomParamWidgets()
 
 void PythonNode::onEditClicked()
 {
+    /*
     Py_Initialize();
     if (PyRun_SimpleString("import ctypes") < 0) {
         zeno::log_warn("Failed to initialize Python module");
         return;
     }
+    */
 }

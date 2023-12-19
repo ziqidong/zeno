@@ -100,6 +100,8 @@ ZENO_ERROR Zeno_IsMute(ZENO_HANDLE hSubg, ZENO_HANDLE hNode, bool& ret);
 ZENO_ERROR Zeno_SetMute(ZENO_HANDLE hSubg, ZENO_HANDLE hNode, bool bOn);
 ZENO_ERROR Zeno_IsOnce(ZENO_HANDLE hSubg, ZENO_HANDLE hNode, bool& ret);
 ZENO_ERROR Zeno_SetOnce(ZENO_HANDLE hSubg, ZENO_HANDLE hNode, bool bOn);
+ZENO_ERROR Zeno_IsCache(ZENO_HANDLE hSubg, ZENO_HANDLE hNode, bool& ret);
+ZENO_ERROR Zeno_SetCache(ZENO_HANDLE hSubg, ZENO_HANDLE hNode, bool bOn);
 ZENO_ERROR Zeno_GetPos(ZENO_HANDLE hSubg, ZENO_HANDLE hNode, std::pair<float, float>& pt);
 ZENO_ERROR Zeno_SetPos(ZENO_HANDLE hSubg, ZENO_HANDLE hNode, const std::pair<float, float>& pt);
 

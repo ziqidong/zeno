@@ -570,6 +570,49 @@ ZENO_ERROR Zeno_SetOnce(ZENO_HANDLE hSubg, ZENO_HANDLE hNode, bool bOn)
     return Err_NoError;
 }
 
+ZENO_ERROR Zeno_IsCache(ZENO_HANDLE hSubg, ZENO_HANDLE hNode, bool& ret)
+{
+    IGraphsModel* pModel = GraphsManagment::instance().currentModel();
+    if (!pModel)
+        return Err_ModelNull;
+
+    QModelIndex idx = pModel->nodeIndex(hSubg, hNode);
+    if (!idx.isValid())
+        return Err_NodeNotExist;
+
+    int opts = idx.data(ROLE_OPTIONS).toInt();
+    ret = (opts & OPT_CACHE);
+    return Err_NoError;
+}
+
+ZENO_ERROR Zeno_SetCache(ZENO_HANDLE hSubg, ZENO_HANDLE hNode, bool bOn)
+{
+    IGraphsModel* pModel = GraphsManagment::instance().currentModel();
+    if (!pModel)
+        return Err_ModelNull;
+
+    QModelIndex idx = pModel->nodeIndex(hSubg, hNode);
+    if (!idx.isValid())
+        return Err_NodeNotExist;
+
+    QModelIndex subgIdx = pModel->subgIndex(hSubg);
+
+    STATUS_UPDATE_INFO info;
+    int options = idx.data(ROLE_OPTIONS).toInt();
+    info.oldValue = options;
+    if (bOn) {
+        options |= OPT_CACHE;
+    }
+    else {
+        options ^= OPT_CACHE;
+    }
+    info.role = ROLE_OPTIONS;
+    info.newValue = options;
+
+    pModel->updateNodeStatus(idx.data(ROLE_OBJID).toString(), info, subgIdx);
+    return Err_NoError;
+}
+
 ZENO_ERROR Zeno_GetPos(ZENO_HANDLE hSubg, ZENO_HANDLE hNode, std::pair<float, float>& pt)
 {
     IGraphsModel* pModel = GraphsManagment::instance().currentModel();

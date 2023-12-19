@@ -20,9 +20,12 @@ enum SocketType
     ST_BOOL,
     ST_FLOAT,
     ST_STRING,
+    ST_VEC2F,
+    ST_VEC2I,
     ST_VEC3F,
     ST_VEC3I,
     ST_VEC4F,
+    ST_VEC4I,
     ST_CURVE,
     ST_COLOR,
 };
