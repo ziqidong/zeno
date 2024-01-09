@@ -622,7 +622,7 @@ GlobalComm::ViewObjects const* GlobalComm::_getViewObjects(const int frameid, bo
                 return nullptr;
 
             inserted = true;
-            prepareForOptix(m_frames[frameIdx].view_objects.m_curr);
+            prepareForOptix();
             prepareForBeta();
 
             m_inCacheFrames.insert(frameid);
@@ -642,7 +642,7 @@ GlobalComm::ViewObjects const* GlobalComm::_getViewObjects(const int frameid, bo
             lastLoadedFrameID = frameid;
         }else if (lastLoadedFrameID != frameid)
         {
-            prepareForOptix(m_frames[frameIdx].view_objects.m_curr);
+            prepareForOptix();
             prepareForBeta();
             lastLoadedFrameID = frameid;
         }
@@ -779,8 +779,22 @@ ZENO_API void GlobalComm::setToViewNodes(std::map<std::string, bool>&nodes)
     toViewNodesId = std::move(nodes);
 }
 
+ZENO_API void GlobalComm::setEnableCache(bool enable)
+{
+    std::lock_guard lck(g_objsMutex);
+    enableCache = enable;
+}
+
+ZENO_API bool GlobalComm::getEnableCache()
+{
+    std::lock_guard lck(g_objsMutex);
+    return enableCache;
+}
+
 //-----ObjectsManager-----
-void GlobalComm::prepareForOptix(std::map<std::string, std::shared_ptr<zeno::IObject>> const& objs) {
+void GlobalComm::prepareForOptix() {
+    std::lock_guard lck(g_objsMutex);
+    std::map<std::string, std::shared_ptr<zeno::IObject>> const& objs = getCurrentFrameObjs();
     std::vector<size_t> count(3, 0);
     for (auto it = lastToViewNodesType.begin(); it != lastToViewNodesType.end();)
         if (objs.find(it->first) == objs.end())
@@ -832,6 +846,7 @@ void GlobalComm::prepareForOptix(std::map<std::string, std::shared_ptr<zeno::IOb
 
 void GlobalComm::prepareForBeta()
 {
+    std::lock_guard lck(g_objsMutex);
     renderTypeBeta = NORMAL;
 }
 
@@ -908,6 +923,34 @@ ZENO_API MapObjects GlobalComm::getCurrentFrameObjs()
         return m_frames[m_currentFrame].view_objects.m_curr;
     }
     return MapObjects();
+}
+
+ZENO_API MapObjects GlobalComm::getFrameObjs(int frame)
+{
+    std::lock_guard lck(g_objsMutex);
+
+    frame = frame - beginFrameNumber;
+
+    if (m_frames.size() == 0)
+    {
+        return MapObjects();
+    } else if (frame >= 0 && frame < m_frames.size())
+    {
+        return m_frames[frame].view_objects.m_curr;
+    }
+    else {
+        return MapObjects();
+    }
+}
+
+ZENO_API std::map<std::string, std::string> GlobalComm::getListitemToViewNodesMapping()
+{
+    return lastListitemToViewNodesId;
+}
+
+ZENO_API void GlobalComm::setListitemToViewNodesMapping(std::map<std::string, std::string> map)
+{
+    lastListitemToViewNodesId = map;
 }
 
 //------new change------

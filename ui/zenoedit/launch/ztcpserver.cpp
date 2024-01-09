@@ -104,6 +104,7 @@ void ZTcpServer::startProc(const std::string& progJson, LAUNCH_PARAM param)
     }
     else
     {
+        zeno::getSession().globalComm->setEnableCache(false);
         viewDecodeSetFrameCache("", 0);
     }
 

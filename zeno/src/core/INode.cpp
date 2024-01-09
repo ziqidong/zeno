@@ -19,6 +19,7 @@
 #include <fstream>
 #include <zeno/extra/GlobalComm.h>
 #include <zeno/types/PrimitiveObject.h>
+#include <zeno/types/ListObject.h>
 
 namespace zeno {
 
@@ -113,15 +114,51 @@ ZENO_API void zeno::INode::writeTmpCaches()
     }
 
     bool bStatic = (Once & m_status);
-    int frameid = bStatic ? -1 : zeno::getSession().globalState->frameid;
+    if (zeno::getSession().globalComm->getEnableCache())
+    {
+        int frameid = bStatic ? -1 : zeno::getSession().globalState->frameid;
 
-    if (bStatic) {
-        getThisSession()->globalComm->addStaticObject(myname, std::make_shared<IObject>());
+        if (bStatic) {
+            getThisSession()->globalComm->addStaticObject(myname, std::make_shared<IObject>());
+        }
+        else {
+            getThisSession()->globalComm->addViewObject(myname, std::make_shared<IObject>());
+        }
+        GlobalComm::toDisk(zeno::getSession().globalComm->objTmpCachePath, frameid, objs, myname, false);
     }
     else {
-        getThisSession()->globalComm->addViewObject(myname, std::make_shared<IObject>());
+        if (View & m_status)
+        {
+            std::map<std::string, std::string> listmapping;
+            std::function<void(zany const&, std::string, std::string)> convertToView = [&](zany const& p, std::string name, std::string toviewName) -> void {
+                if (ListObject* lst = dynamic_cast<ListObject*>(p.get())) {
+                    log_info("ToView got ListObject (size={}), expanding", lst->arr.size());
+                    for (size_t i = 0; i < lst->arr.size(); i++) {
+                        zany const& lp = lst->arr[i];
+                        std::string id = "";
+                        if (std::shared_ptr<IObject> obj = std::dynamic_pointer_cast<IObject>(lp)) {
+                            id = obj->userData().get2<std::string>("object-id", "");
+                        }
+                        convertToView(lp, id, toviewName);
+                    }
+                    return;
+                }
+                if (!p) {
+                    log_error("ToView: given object is nullptr");
+                }
+                else {
+                    if (bStatic) {
+                        getThisSession()->globalComm->addStaticObject(name, std::move(p));
+                        listmapping.insert(std::make_pair(name, toviewName));
+                    }
+                    getThisSession()->globalComm->addViewObject(name, std::move(p));
+                }
+            };
+            convertToView((*--objs.end()).second, myname, myname);
+            if (zeno::getSession().globalComm->getListitemToViewNodesMapping().size() == 0)
+                getThisSession()->globalComm->setListitemToViewNodesMapping(listmapping);
+        }
     }
-    GlobalComm::toDisk(zeno::getSession().globalComm->objTmpCachePath, frameid, objs, myname, false);
 }
 
 ZENO_API void INode::preApply() {
@@ -134,6 +171,26 @@ ZENO_API void INode::preApply() {
             set_output(name, get_input(name));
         }
         return;
+    }
+    if (!zeno::getSession().globalComm->getEnableCache()) {
+        if (Once & m_status) {
+            bool flag = false;
+            auto objs = zeno::getSession().globalComm->getFrameObjs(zeno::getSession().globalState->frameid - 1);
+            if (objs.find(myname) != objs.end())
+            {
+                getThisSession()->globalComm->addViewObject(myname, std::move(objs.find(myname)->second));
+                flag = true;
+            }
+            else {
+                for (auto& [listitem, toviewnodes] : zeno::getSession().globalComm->getListitemToViewNodesMapping())
+                    if (toviewnodes == myname) {
+                        getThisSession()->globalComm->addViewObject(listitem, std::move(objs.find(listitem)->second));
+                        flag = true;
+                    }
+            }
+            if (flag)
+                return;
+        }
     }
     if ((m_status & NodeStatus::Once) && m_bFinishOnce)
         return;

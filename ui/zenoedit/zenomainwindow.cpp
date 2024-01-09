@@ -1161,6 +1161,11 @@ void ZenoMainWindow::updateViewport(const QString& action)
                 int ui_frame = m_pTimeline->value();
                 if (ui_frame == endFrame)
                 {
+                    if (!zeno::getSession().globalComm->getEnableCache())   //cache not enabled
+                    {
+                        zeno::getSession().globalComm->prepareForOptix();
+                        zeno::getSession().globalComm->prepareForBeta();
+                    }
                     for (DisplayWidget* view : views)
                     {
                         if (view->isGLViewport())

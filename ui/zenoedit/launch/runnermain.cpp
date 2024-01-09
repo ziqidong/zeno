@@ -109,6 +109,7 @@ static int runner_start(std::string const &progJson, int sessionid, const LAUNCH
     }
     else {
         zeno::getSession().globalComm->frameCache("", 0);
+        zeno::getSession().globalComm->setEnableCache(false);
     }
 
     auto onfail = [&] {
@@ -196,7 +197,7 @@ static int runner_start(std::string const &progJson, int sessionid, const LAUNCH
             //dump cache to disk.
             session->globalComm->dumpFrameCache(frame);
         } else {
-            const auto& objs = session->globalComm->pairsShared();
+            const auto& objs = session->globalComm->getFrameObjs(frame);
             zeno::log_debug("runner got {} view objects", objs.size());
             for (auto const& p : objs) {
                 if (zeno::encodeObject(p.second.get(), buffer))

@@ -58,37 +58,58 @@ struct GraphicsManager {
         return ins.has_changed();
     }
 
-    void update_objs(std::map<std::string, std::shared_ptr<zeno::IObject>> objs, std::map<std::string, std::shared_ptr<zeno::IObject>> newobjs) {
-        realtime_graphics.clear();
+    void update_objs(std::map<std::string, std::shared_ptr<zeno::IObject>> objs, std::map<std::string, std::shared_ptr<zeno::IObject>> newobjs, bool enableCache) {
         std::map<std::string, std::unique_ptr<IGraphic>> tmp;
-        for (auto const& [key, obj] : objs) {
-            if (load_realtime_object(key, obj)) {
-                graphics.m_curr.m_curr.erase(key);
-                continue;
-            };
-            auto it = graphics.m_curr.m_curr.find(key);
-            if (it != graphics.m_curr.m_curr.end()) {
-                if (newobjs.find(key) != newobjs.end() && zeno::getSession().globalComm->getRenderTypeBeta() != zeno::GlobalComm::UNDEFINED)
-                {
+        realtime_graphics.clear();
+        if (enableCache)
+        {
+            for (auto const& [key, obj] : objs) {
+                if (load_realtime_object(key, obj)) {
+                    graphics.m_curr.m_curr.erase(key);
+                    continue;
+                };
+                auto it = graphics.m_curr.m_curr.find(key);
+                if (it != graphics.m_curr.m_curr.end()) {
+                    if (newobjs.find(key) != newobjs.end() && zeno::getSession().globalComm->getRenderTypeBeta() != zeno::GlobalComm::UNDEFINED)
+                    {
+                        auto ig = makeGraphic(scene, obj.get());
+                        zeno::log_debug("load_object: loaded graphics to {}", ig.get());
+                        ig->nameid = key;
+                        ig->objholder = obj;
+                        tmp.insert(std::make_pair(key, std::move(ig)));
+                    }
+                    else {
+                        tmp.insert(std::make_pair(key, std::move(it->second)));
+                    }
+                }
+                else {
                     auto ig = makeGraphic(scene, obj.get());
                     zeno::log_debug("load_object: loaded graphics to {}", ig.get());
                     ig->nameid = key;
                     ig->objholder = obj;
                     tmp.insert(std::make_pair(key, std::move(ig)));
                 }
-                else {
-                    tmp.insert(std::make_pair(key, std::move(it->second)));
+            }
+            graphics.m_curr.m_curr.swap(tmp);
+        }
+        else {
+            if (zeno::getSession().globalComm->getRenderTypeBeta() != zeno::GlobalComm::UNDEFINED)
+                graphics.m_curr.m_curr.clear();
+            for (auto const& [key, obj] : objs) {
+                if (load_realtime_object(key, obj)) {
+                    graphics.m_curr.m_curr.erase(key);
+                    continue;
+                }
+                if (graphics.m_curr.m_curr.find(key) == graphics.m_curr.m_curr.end() || zeno::getSession().globalComm->getRenderTypeBeta() != zeno::GlobalComm::UNDEFINED)
+                {
+                    auto ig = makeGraphic(scene, obj.get());
+                    zeno::log_debug("load_object: loaded graphics to {}", ig.get());
+                    ig->nameid = key;
+                    ig->objholder = obj;
+                    graphics.m_curr.m_curr.insert(std::make_pair(key, std::move(ig)));
                 }
             }
-            else {
-                auto ig = makeGraphic(scene, obj.get());
-                zeno::log_debug("load_object: loaded graphics to {}", ig.get());
-                ig->nameid = key;
-                ig->objholder = obj;
-                tmp.insert(std::make_pair(key, std::move(ig)));
-            }
         }
-        graphics.m_curr.m_curr.swap(tmp);
     }
 
     void draw() {

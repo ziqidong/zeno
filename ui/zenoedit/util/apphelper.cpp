@@ -394,7 +394,9 @@ void AppHelper::initLaunchCacheParam(LAUNCH_PARAM& param)
 
     std::shared_ptr<ZCacheMgr> mgr = zenoApp->cacheMgr();
     ZASSERT_EXIT(mgr);
-    if (!mgr->nextRunSkipCreateDir(param))
+    if (!param.enableCache) //cache not enabled, run all nodes
+        markAllNodesInMainGraphDirty(false);
+    else if (!mgr->nextRunSkipCreateDir(param))
         markAllNodesInMainGraphDirty(false);
 }
 

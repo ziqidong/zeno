@@ -47,6 +47,8 @@ struct GlobalComm {
     std::string cacheFramePath;
     std::string objTmpCachePath;
 
+    bool enableCache = true;
+
     ZENO_API void frameCache(std::string const &path, int gcmax);
     ZENO_API void initFrameRange(int beg, int end);
     ZENO_API void newFrame();
@@ -70,6 +72,8 @@ struct GlobalComm {
     ZENO_API bool removeCache(int frame);
     ZENO_API void removeCachePath();
     ZENO_API void setToViewNodes(std::map<std::string, bool>& nodes);
+    ZENO_API void setEnableCache(bool enable);
+    ZENO_API bool getEnableCache();
     static void toDisk(std::string cachedir, int frameid, GlobalComm::ViewObjects& objs, std::string key = "", bool dumpCacheVersionInfo = false);
     static bool fromDiskByRunner(std::string cachedir, int frameid, GlobalComm::ViewObjects& objs, std::string filename);
     static bool fromDiskByObjsManager(std::string cachedir, int frameid, GlobalComm::ViewObjects& objs, std::map<std::string, bool>& nodesToLoad);
@@ -89,6 +93,9 @@ struct GlobalComm {
     ZENO_API std::vector<std::pair<std::string, IObject*>> pairs() const;
     ZENO_API std::vector<std::pair<std::string, std::shared_ptr<IObject>>> pairsShared() const;
     ZENO_API MapObjects getCurrentFrameObjs();
+    ZENO_API MapObjects getFrameObjs(int frame);
+    ZENO_API std::map<std::string, std::string> getListitemToViewNodesMapping();
+    ZENO_API void setListitemToViewNodesMapping(std::map<std::string, std::string> map);
     //------new change------
     ZENO_API void clear_lightObjects();
     ZENO_API bool lightObjsCount(std::string& id);
@@ -120,6 +127,8 @@ struct GlobalComm {
     ZENO_API void setRenderTypeBeta(RenderType type);
     ZENO_API RenderType getRenderTypeBeta();
 
+    ZENO_API void prepareForOptix();
+    ZENO_API void prepareForBeta();
 private:
     ViewObjects const* _getViewObjects(const int frameid, bool& inserted);
     void _initStaticObjects();
@@ -136,8 +145,6 @@ private:
     RenderType renderTypeBeta = UNDEFINED;
     std::map<std::string, int> lastToViewNodesType;
     //------new change------
-    void prepareForOptix(std::map<std::string, std::shared_ptr<zeno::IObject>> const& objs);
-    void prepareForBeta();
     int m_currentFrame = 0;    //ºı»•startFrame
     static MapObjects m_newToviewObjs;
     static MapObjects m_newToviewObjsStatic;

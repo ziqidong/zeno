@@ -582,6 +582,14 @@ void DisplayWidget::onSliderValueChanged(int frame)
     {
         m_glView->clearTransformer();
     }
+
+    if (!zeno::getSession().globalComm->getEnableCache())
+    {
+        if (m_glView)
+            zeno::getSession().globalComm->setRenderTypeBeta(zeno::GlobalComm::NORMAL);
+        else
+            zeno::getSession().globalComm->setRenderType(zeno::GlobalComm::NORMAL);
+    }
 }
 
 void DisplayWidget::changeTransformOperation(const QString& node)
